@@ -1,21 +1,27 @@
-<<<<<<< HEAD
-# cdax_app
+# CDAX App
 
-A new Flutter project.
+CDAX App is a Flutter-based educational platform for interactive learning, course management, and progress tracking. It features a clean UI and modular code, making it easy to extend and integrate with backend services.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+1. Clone the repo:
+   ```
+   git clone https://github.com/<your-username>/Cdax_App.git
+   ```
+2. Install dependencies:
+   ```
+   flutter pub get
+   ```
+3. Run the app:
+   ```
+   flutter run
+   ```
 
-A few resources to get you started if this is your first Flutter project:
+## Features
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+- Browse and enroll in courses
+- Track learning progress
+- Modern, responsive design
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# Cdax_App
-A Flutter-based educational platform for interactive learning, course management, and student progress tracking.
->>>>>>> 39d0f16ceb10db91f16a20308c34100c8c151069
+---
+For client use only.
