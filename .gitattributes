@@ -1,0 +1,8 @@
+# Ignore Android and iOS build/config files in language stats
+android/** linguist-vendored
+ios/** linguist-vendored
+**/CMakeLists.txt linguist-vendored
+**/Makefile linguist-vendored
+
+# Focus only on Flutter (Dart)
+*.dart linguist-detectable=true
