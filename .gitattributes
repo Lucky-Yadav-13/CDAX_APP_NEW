@@ -1,14 +1,20 @@
-# Ignore all OS/platform build/config files for stats
+# Ignore build/config/platform files for stats
 /android/** linguist-vendored
 /ios/** linguist-vendored
 /linux/** linguist-vendored
 /macos/** linguist-vendored
 /windows/** linguist-vendored
 
-# Ignore Makefile-related stats
+# Ignore Make-related files
 *.mk linguist-vendored
 Makefile linguist-vendored
 
-# Force Dart as primary language
+# Ignore lock, config, and generated files
+*.lock linguist-vendored
+*.log linguist-vendored
+*.yaml linguist-vendored
+*.json linguist-vendored
+
+# Force Dart as main language
 *.dart linguist-detectable=true
 *.dart linguist-language=Dart
