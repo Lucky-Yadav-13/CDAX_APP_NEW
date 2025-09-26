@@ -1,13 +1,17 @@
-# Ignore vendor/platform code so Flutter (Dart) shows correctly
-android/** linguist-vendored
-ios/** linguist-vendored
-linux/** linguist-vendored
-macos/** linguist-vendored
-windows/** linguist-vendored
+# Tell GitHub Linguist to ignore build/config files for language stats
+*.mk linguist-vendored
+Makefile linguist-vendored
+/android/** linguist-vendored
+/ios/** linguist-vendored
+/linux/** linguist-vendored
+/macos/** linguist-vendored
+/windows/** linguist-vendored
 
-# Ignore Makefiles/CMake that are just build scripts
-**/CMakeLists.txt linguist-vendored
-**/Makefile linguist-vendored
-
-# Ensure Dart is detected
+# Explicitly mark Dart as the main language
 *.dart linguist-detectable=true
+*.dart linguist-language=Dart
+
+# Optional: If you add backend later
+*.js linguist-language=JavaScript
+*.ts linguist-language=TypeScript
+*.php linguist-language=PHP
