@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # cdax_app
 
 A new Flutter project.
@@ -14,3 +15,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+=======
+# Cdax_App
+A Flutter-based educational platform for interactive learning, course management, and student progress tracking.
+>>>>>>> 39d0f16ceb10db91f16a20308c34100c8c151069
