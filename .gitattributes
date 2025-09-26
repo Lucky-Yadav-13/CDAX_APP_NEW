@@ -1,8 +1,13 @@
-# Ignore Android and iOS build/config files in language stats
+# Ignore vendor/platform code so Flutter (Dart) shows correctly
 android/** linguist-vendored
 ios/** linguist-vendored
+linux/** linguist-vendored
+macos/** linguist-vendored
+windows/** linguist-vendored
+
+# Ignore Makefiles/CMake that are just build scripts
 **/CMakeLists.txt linguist-vendored
 **/Makefile linguist-vendored
 
-# Focus only on Flutter (Dart)
+# Ensure Dart is detected
 *.dart linguist-detectable=true
