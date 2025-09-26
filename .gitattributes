@@ -15,6 +15,3 @@ Makefile linguist-vendored
 *.yaml linguist-vendored
 *.json linguist-vendored
 
-# Force Dart as main language
-*.dart linguist-detectable=true
-*.dart linguist-language=Dart
