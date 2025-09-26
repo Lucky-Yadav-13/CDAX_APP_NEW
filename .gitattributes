@@ -1,17 +1,14 @@
-# Tell GitHub Linguist to ignore build/config files for language stats
-*.mk linguist-vendored
-Makefile linguist-vendored
+# Ignore all OS/platform build/config files for stats
 /android/** linguist-vendored
 /ios/** linguist-vendored
 /linux/** linguist-vendored
 /macos/** linguist-vendored
 /windows/** linguist-vendored
 
-# Explicitly mark Dart as the main language
+# Ignore Makefile-related stats
+*.mk linguist-vendored
+Makefile linguist-vendored
+
+# Force Dart as primary language
 *.dart linguist-detectable=true
 *.dart linguist-language=Dart
-
-# Optional: If you add backend later
-*.js linguist-language=JavaScript
-*.ts linguist-language=TypeScript
-*.php linguist-language=PHP
