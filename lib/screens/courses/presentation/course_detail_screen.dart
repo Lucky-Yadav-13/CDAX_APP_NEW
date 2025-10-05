@@ -6,6 +6,8 @@ import '../application/course_providers.dart';
 import '../../courses/presentation/module_row.dart';
 import '../../courses/data/mock_course_repository.dart';
 import '../../courses/data/models/module.dart';
+import '../../../providers/subscription_provider.dart';
+
 
 class CourseDetailScreen extends StatefulWidget {
   const CourseDetailScreen({super.key, required this.courseId});
@@ -16,7 +18,6 @@ class CourseDetailScreen extends StatefulWidget {
 }
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
-  bool? _enrolledOverride; // null means use course.isSubscribed
   final _repo = MockCourseRepository();
 
   @override
@@ -38,7 +39,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             body: Center(child: Text('Course not found')),
           );
         }
-        final bool enrolled = _enrolledOverride ?? course.isSubscribed;
+        final bool enrolled = course.isEnrolled;
         return Scaffold(
           appBar: AppBar(title: Text(course.title)),
           body: ListView(
@@ -54,7 +55,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   }
                   firstUnlocked ??= course.modules.isNotEmpty ? course.modules.first : null;
                   if (firstUnlocked != null) {
-                    context.go('/dashboard/courses/${course.id}/module/${firstUnlocked.id}');
+                  context.go('/dashboard/courses/${course.id}/module/${firstUnlocked.id}');
                   }
                 },
                 child: Stack(
@@ -84,14 +85,145 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     const SizedBox(height: 8),
                     Text(course.description),
                     const SizedBox(height: 12),
+                     Column(
+                       crossAxisAlignment: CrossAxisAlignment.start,
+                       children: [
                     Row(
                       children: [
-                        FilledButton(
-                          onPressed: () => setState(() => _enrolledOverride = !enrolled),
-                          child: Text(enrolled ? 'Unenroll' : 'Enroll'),
-                        ),
-                        const SizedBox(width: 12),
+                             // Only show Enroll button if course is purchased but not enrolled
+                             if (course.isSubscribed && !enrolled)
+                               Expanded(
+                                 child: FilledButton(
+                                   onPressed: () async {
+                                     try {
+                                       final success = await _repo.enrollInCourse(course.id);
+                                       if (mounted) {
+                                         if (success) {
+                                           ScaffoldMessenger.of(context).showSnackBar(
+                                             const SnackBar(
+                                               content: Text('Successfully enrolled in course!'),
+                                               backgroundColor: Colors.green,
+                                             ),
+                                           );
+                                           setState(() {}); // Refresh to show updated state
+                                         } else {
+                                           ScaffoldMessenger.of(context).showSnackBar(
+                                             const SnackBar(
+                                               content: Text('Cannot enroll in unpurchased course'),
+                                               backgroundColor: Colors.red,
+                                             ),
+                                           );
+                                         }
+                                       }
+                                     } catch (e) {
+                                       if (mounted) {
+                                         ScaffoldMessenger.of(context).showSnackBar(
+                                           const SnackBar(
+                                             content: Text('Failed to enroll. Please try again.'),
+                                             backgroundColor: Colors.red,
+                                           ),
+                                         );
+                                       }
+                                     }
+                                   },
+                                   child: const Text('Enroll'),
+                                 ),
+                               ),
+                             // Only show Unenroll button if enrolled
+                             if (enrolled)
+                               Expanded(
+                                 child: FilledButton.tonal(
+                                   onPressed: () async {
+                                     try {
+                                       final success = await _repo.unenrollFromCourse(course.id);
+                                       if (mounted) {
+                                         if (success) {
+                                           ScaffoldMessenger.of(context).showSnackBar(
+                                             const SnackBar(
+                                               content: Text('Successfully unenrolled from course'),
+                                               backgroundColor: Colors.orange,
+                                             ),
+                                           );
+                                           setState(() {}); // Refresh to show updated state
+                                         } else {
+                                           ScaffoldMessenger.of(context).showSnackBar(
+                                             const SnackBar(
+                                               content: Text('Failed to unenroll. Please try again.'),
+                                               backgroundColor: Colors.red,
+                                             ),
+                                           );
+                                         }
+                                       }
+                                     } catch (e) {
+                                       if (mounted) {
+                                         ScaffoldMessenger.of(context).showSnackBar(
+                                           const SnackBar(
+                                             content: Text('Failed to unenroll. Please try again.'),
+                                             backgroundColor: Colors.red,
+                                           ),
+                                         );
+                                       }
+                                     }
+                                   },
+                                   child: const Text('Unenroll'),
+                                 ),
+                               ),
+                             const SizedBox(width: 8),
+                             // Only show Buy Course button for unpurchased courses
+                             if (!course.isSubscribed)
+                               Expanded(
+                                 child: FilledButton.tonal(
+                                   onPressed: () {
+                                     // Prepare purchase context for this course
+                                     SubscriptionController.instance.setPurchaseContext(
+                                       courseId: course.id,
+                                       title: course.title,
+                                       amount: 399.0,
+                                     );
+                                     // Navigate to order summary first
+                                     context.push('/dashboard/subscription/summary');
+                                   },
+                                   child: const Text('Buy course'),
+                                 ),
+                               ),
+                           ],
+                         ),
+                         const SizedBox(height: 8),
                         Text('Progress: ${(course.progressPercent * 100).round()}%'),
+                        const SizedBox(height: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: FilledButton.tonal(
+                                    onPressed: enrolled
+                                        ? () => context.push('/dashboard/courses/${course.id}/assessment/question')
+                                        : null,
+                                    child: const Text('Take Assessment'),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: FilledButton.tonal(
+                                    onPressed: enrolled
+                                        ? () => context.push('/dashboard/courses/${course.id}/code')
+                                        : null,
+                                    child: const Text('Solve Problem'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            FilledButton.tonal(
+                              onPressed: enrolled
+                                  ? () => context.push('/dashboard/courses/${course.id}/certificate')
+                                  : null,
+                              child: const Text('View Certificate'),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ],
@@ -109,13 +241,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                           )
                         ]
                       : course.modules.map((m) {
-                          return ModuleRow(
-                            module: m,
-                            onPlay: m.isLocked
-                                ? null
-                                : () => context.go('/dashboard/courses/${course.id}/module/${m.id}'),
-                          );
-                        }).toList(),
+                    return ModuleRow(
+                      module: m,
+                      onPlay: m.isLocked
+                          ? null
+                          : () => context.go('/dashboard/courses/${course.id}/module/${m.id}'),
+                    );
+                  }).toList(),
                 ),
               ),
             ],

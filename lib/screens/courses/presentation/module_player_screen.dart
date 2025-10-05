@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../application/course_providers.dart';
 import '../../courses/data/mock_course_repository.dart';
 import '../../courses/data/models/module.dart';
+import '../../../services/mock_video_service.dart';
 
 class ModulePlayerScreen extends StatelessWidget {
   const ModulePlayerScreen({super.key, required this.courseId, required this.moduleId});
@@ -46,17 +47,27 @@ class ModulePlayerScreen extends StatelessWidget {
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black12,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(
-                    child: Icon(Icons.play_circle, size: 64),
-                  ),
-                ),
+              FutureBuilder<String>(
+                future: MockVideoService.getModuleVideoUrl(courseId: courseId, moduleId: moduleId),
+                builder: (context, snap) {
+                  if (snap.connectionState != ConnectionState.done) {
+                    return const AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  if (snap.hasError || (snap.data ?? '').isEmpty) {
+                    return const AspectRatio(
+                      aspectRatio: 16 / 9,
+                      child: Center(child: Text('Unable to load video')),
+                    );
+                  }
+                  final url = snap.data!;
+                  return FilledButton(
+                    onPressed: () => context.push('/dashboard/courses/$courseId/module/$moduleId/video?url=$url'),
+                    child: const Text('Watch Video'),
+                  );
+                },
               ),
               const SizedBox(height: 16),
               Text(module.title, style: Theme.of(context).textTheme.titleLarge),

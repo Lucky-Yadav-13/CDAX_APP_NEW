@@ -40,7 +40,7 @@ class CourseCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(10),

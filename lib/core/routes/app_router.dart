@@ -10,9 +10,20 @@ import '../../screens/dashboard/presentation/home_screen.dart';
 import '../../screens/courses/presentation/course_list_screen.dart';
 import '../../screens/courses/presentation/course_detail_screen.dart';
 import '../../screens/courses/presentation/module_player_screen.dart';
+import '../../screens/courses/presentation/assessment_question_screen.dart';
+import '../../screens/courses/presentation/code_challenge_screen.dart';
+import '../../screens/courses/presentation/score_screen.dart';
+import '../../screens/courses/presentation/score_preview_screen.dart';
+import '../../screens/courses/presentation/certificate_screen.dart';
+import '../../screens/courses/presentation/course_video_screen.dart';
 import '../../screens/support/presentation/support_screen.dart';
 import '../../screens/profile/presentation/profile_screen.dart';
 import '../../screens/profile/presentation/profile_edit_screen.dart';
+import '../../screens/subscription/subscription_overview_screen.dart';
+import '../../screens/subscription/payment_summary_screen.dart';
+import '../../screens/subscription/payment_methods_screen.dart';
+import '../../screens/subscription/payment_upi_screen.dart';
+import '../../screens/subscription/payment_result_screen.dart';
 
 /// Centralized application router using GoRouter
 /// Defines all app routes and navigation logic.
@@ -67,6 +78,47 @@ class AppRouter {
             path: 'courses/:id',
             name: 'dashboardCourseDetail',
             builder: (context, state) => CourseDetailScreen(courseId: state.pathParameters['id']!),
+            routes: [
+              GoRoute(
+                path: 'assessment/question',
+                name: 'dashboardAssessmentQuestion',
+                builder: (context, state) => AssessmentQuestionScreen(courseId: state.pathParameters['id']!),
+              ),
+              GoRoute(
+                path: 'assessment/score',
+                name: 'dashboardAssessmentScore',
+                builder: (context, state) {
+                  final score = state.extra is int ? state.extra as int : 0;
+                  return ScoreScreen(courseId: state.pathParameters['id']!, score: score, total: 10);
+                },
+              ),
+              GoRoute(
+                path: 'assessment/preview',
+                name: 'dashboardAssessmentPreview',
+                builder: (context, state) {
+                  final score = state.extra is int ? state.extra as int : 0;
+                  return ScorePreviewScreen(courseId: state.pathParameters['id']!, score: score);
+                },
+              ),
+              GoRoute(
+                path: 'code',
+                name: 'dashboardCodeChallenge',
+                builder: (context, state) => CodeChallengeScreen(courseId: state.pathParameters['id']!),
+              ),
+              GoRoute(
+                path: 'certificate',
+                name: 'dashboardCertificate',
+                builder: (context, state) => CertificateScreen(courseId: state.pathParameters['id']!),
+              ),
+              GoRoute(
+                path: 'module/:moduleId/video',
+                name: 'dashboardModuleVideo',
+                builder: (context, state) {
+                  final url = state.uri.queryParameters['url'] ?? '';
+                  return CourseVideoScreen(videoUrl: url);
+                },
+              ),
+            ],
           ),
           GoRoute(
             path: 'courses/:courseId/module/:moduleId',
@@ -86,6 +138,34 @@ class AppRouter {
                 name: 'dashboardProfileEdit',
                 builder: (context, state) => const ProfileEditScreen(),
               )
+            ],
+          ),
+          /// Subscription flow nested under dashboard to keep BottomNavigation visible
+          GoRoute(
+            path: 'subscription',
+            name: 'dashboardSubscription',
+            builder: (context, state) => const SubscriptionOverviewScreen(),
+            routes: [
+              GoRoute(
+                path: 'summary',
+                name: 'dashboardPaymentSummary',
+                builder: (context, state) => const PaymentSummaryScreen(),
+              ),
+              GoRoute(
+                path: 'methods',
+                name: 'dashboardPaymentMethods',
+                builder: (context, state) => const PaymentMethodsScreen(),
+              ),
+              GoRoute(
+                path: 'upi',
+                name: 'dashboardPaymentUpi',
+                builder: (context, state) => const PaymentUpiScreen(),
+              ),
+              GoRoute(
+                path: 'result',
+                name: 'dashboardPaymentResult',
+                builder: (context, state) => const PaymentResultScreen(),
+              ),
             ],
           ),
           GoRoute(

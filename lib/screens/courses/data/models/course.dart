@@ -10,7 +10,8 @@ class Course {
   final String description;
   final String thumbnailUrl;
   final double progressPercent; // 0..1
-  final bool isSubscribed;
+  final bool isSubscribed; // Whether course is purchased
+  final bool isEnrolled; // Whether user is enrolled in the course
   final List<Module> modules;
 
   const Course({
@@ -20,6 +21,7 @@ class Course {
     required this.thumbnailUrl,
     required this.progressPercent,
     required this.isSubscribed,
+    this.isEnrolled = false, // Default to not enrolled
     required this.modules,
   });
 }

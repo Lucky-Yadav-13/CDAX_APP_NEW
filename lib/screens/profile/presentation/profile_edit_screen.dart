@@ -57,7 +57,12 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             TextFormField(
               controller: _name,
               decoration: const InputDecoration(labelText: 'Name'),
-              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+              textInputAction: TextInputAction.next,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Name is required';
+                if (v.trim().length < 2) return 'Enter a valid name';
+                return null;
+              },
             ),
             const SizedBox(height: 8),
             TextFormField(
@@ -69,7 +74,14 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
             TextFormField(
               controller: _phone,
               decoration: const InputDecoration(labelText: 'Phone'),
-              validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Phone is required';
+                final d = v.replaceAll(RegExp('[^0-9]'), '');
+                if (d.length < 10) return 'Enter a valid phone number';
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             FilledButton(

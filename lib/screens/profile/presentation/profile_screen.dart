@@ -120,11 +120,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   leading: const Icon(Icons.credit_card),
                   title: const Text('Payment'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Payment coming soon')),
-                    );
-                  },
+                  onTap: () => context.push('/dashboard/subscription/methods'),
                 ),
                 const Divider(height: 1),
                 ListTile(

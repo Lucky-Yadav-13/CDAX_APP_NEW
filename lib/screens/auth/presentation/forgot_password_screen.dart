@@ -53,7 +53,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) {
                   if (value == null || value.isEmpty) return 'Email is required';
-                  if (!value.contains('@')) return 'Enter a valid email';
+                  if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(value)) {
+                    return 'Enter a valid email address';
+                  }
                   return null;
                 },
                 textInputAction: TextInputAction.done,
