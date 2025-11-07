@@ -2,7 +2,6 @@
 
 import 'package:flutter/material.dart';
 import '../application/course_providers.dart';
-import '../../courses/data/mock_course_repository.dart';
 import 'course_list_card.dart';
 import '../../../widgets/animations/staggered_list_animation.dart';
 import '../../../widgets/loading/skeleton_loader.dart';
@@ -17,7 +16,7 @@ class CourseListScreen extends StatefulWidget {
 class _CourseListScreenState extends State<CourseListScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
   final ScrollController _scrollCtrl = ScrollController();
-  final _repo = MockCourseRepository();
+  late final CourseRepository _repo;
   late Future _loadFuture;
   final List _all = [];
   final List _visible = [];
@@ -29,6 +28,10 @@ class _CourseListScreenState extends State<CourseListScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Initialize repository using factory
+    _repo = CourseProviders.getCourseRepository();
+    print('🎓 CourseListScreen: Initialized with ${_repo.runtimeType}');
     // Pagination: detect near-bottom and trigger load more
     _scrollCtrl.addListener(() {
       final max = _scrollCtrl.position.maxScrollExtent;

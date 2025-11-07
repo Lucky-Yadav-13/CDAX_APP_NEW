@@ -1,9 +1,20 @@
-// ASSUMPTION: Provider-lite: expose repository types without external dependencies.
-// TODO: Replace Mock with real backend repository when ready.
+// Enhanced course providers with Spring Boot backend integration
+// Automatically uses remote repository with mock fallback
 
-export '../data/mock_course_repository.dart' show CourseRepository, MockCourseRepository;
+import '../../../factories/course_repository_factory.dart';
+import '../data/mock_course_repository.dart' show CourseRepository;
+export '../data/mock_course_repository.dart' show CourseRepository;
 
-// ASSUMPTION: Provider-lite: expose repository types without external dependencies.
+/// Course provider utilities for backend integration
+class CourseProviders {
+  /// Get the configured course repository instance
+  /// Returns RemoteCourseRepository (with mock fallback) or MockCourseRepository
+  static CourseRepository getCourseRepository() {
+    final repo = CourseRepositoryFactory.getInstance();
+    print('📚 Using repository type: ${CourseRepositoryFactory.getRepositoryType()}');
+    return repo;
+  }
+}
 
 /// Simple last-played store without external dependencies; can be swapped for provider later.
 class LastPlayedStore {

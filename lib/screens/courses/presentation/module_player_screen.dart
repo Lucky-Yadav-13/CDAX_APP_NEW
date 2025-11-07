@@ -13,7 +13,9 @@ class ModulePlayerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final repo = MockCourseRepository();
+    // Get repository using factory
+    final repo = CourseProviders.getCourseRepository();
+    print('🎬 ModulePlayerScreen: Using ${repo.runtimeType} for course $courseId, module $moduleId');
     return FutureBuilder(
       future: repo.getCourseById(courseId),
       builder: (context, snapshot) {

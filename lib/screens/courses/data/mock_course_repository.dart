@@ -35,7 +35,7 @@ class MockCourseRepository implements CourseRepository {
         final String videoUrl = i == 1 ? 'https://youtu.be/RFThBMUs3e0' :
                                i == 2 ? 'https://youtu.be/7MQe8B5n2t8' :
                                'https://youtu.be/loYQ4CkTngo';
-        return Module(
+        return Module.legacy(
           id: 'm${i}_$num',
           title: 'Module $num',
           durationSec: 600 + num * 120,
@@ -50,7 +50,7 @@ class MockCourseRepository implements CourseRepository {
                                      i == 2 ? 'Complete Python development course from basics to advanced.' :
                                      'Complete Java programming course with hands-on coding.';
       
-      list.add(Course(
+      list.add(Course.legacy(
         id: id,
         title: courseTitle,
         description: courseDescription,
@@ -92,11 +92,11 @@ class MockCourseRepository implements CourseRepository {
                 title: m.title,
                 durationSec: m.durationSec,
                 isLocked: purchasedNow ? false : m.isLocked,
-                videoUrl: m.videoUrl,
+                videos: m.videos, // Use the videos list instead of videoUrl
               ))
           .toList(growable: false);
       // Return course with updated enrollment and purchase status
-      return Course(
+      return Course.legacy(
         id: course.id,
         title: course.title,
         description: course.description,

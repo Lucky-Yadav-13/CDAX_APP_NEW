@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../application/course_providers.dart';
 import '../../courses/presentation/module_row.dart';
-import '../../courses/data/mock_course_repository.dart';
 import '../../courses/data/models/module.dart';
 import '../../../providers/subscription_provider.dart';
 
@@ -18,7 +17,16 @@ class CourseDetailScreen extends StatefulWidget {
 }
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
-  final _repo = MockCourseRepository();
+  late final CourseRepository _repo;
+  
+  @override
+  void initState() {
+    super.initState();
+    
+    // Initialize repository using factory
+    _repo = CourseProviders.getCourseRepository();
+    print('📖 CourseDetailScreen: Initialized with ${_repo.runtimeType} for course ${widget.courseId}');
+  }
 
   @override
   Widget build(BuildContext context) {

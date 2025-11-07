@@ -1,12 +1,13 @@
-import '../screens/courses/data/mock_course_repository.dart';
+import '../screens/courses/application/course_providers.dart';
 
 class MockVideoService {
   static Future<String> getCourseIntroUrl(String courseId) async {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     
     try {
-      // Get the actual course data from the repository
-      final repo = MockCourseRepository();
+      // Get the actual course data from the repository (backend or mock)
+      final repo = CourseProviders.getCourseRepository();
+      print('🎬 MockVideoService: Getting intro URL for course $courseId using ${repo.runtimeType}');
       final course = await repo.getCourseById(courseId);
       
       // Return the first module's video URL as course intro
@@ -25,8 +26,9 @@ class MockVideoService {
     await Future<void>.delayed(const Duration(milliseconds: 300));
     
     try {
-      // Get the actual course data from the repository
-      final repo = MockCourseRepository();
+      // Get the actual course data from the repository (backend or mock)
+      final repo = CourseProviders.getCourseRepository();
+      print('🎬 MockVideoService: Getting video URL for course $courseId, module $moduleId using ${repo.runtimeType}');
       final course = await repo.getCourseById(courseId);
       
       // Find the specific module
