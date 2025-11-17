@@ -23,8 +23,8 @@ class EnvironmentConfig {
   }
   
   static const Map<String, dynamic> developmentConfig = {
-    'baseUrl': 'http://localhost:8080',
-    'apiVersion': '/api/v1',
+    'baseUrl': 'https://cdax-assessment-hosting.onrender.com',
+    'apiVersion': '/api',
     'enableLogging': true,
     'enableDebugMode': true,
     'databaseUrl': 'localhost:5432/cdax_dev',

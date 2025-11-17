@@ -1,7 +1,6 @@
 /// Base API Service
 /// Abstract base class for all API services with common functionality
 import 'dart:convert';
-import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/api_constants.dart';
 import '../config/environment.dart';

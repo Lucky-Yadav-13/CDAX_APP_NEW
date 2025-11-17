@@ -1,11 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/robot_character.dart';
 import '../../../core/widgets/social_login_button.dart';
+import '../../../providers/user_provider.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -16,30 +18,53 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     _emailController.dispose();
+    _mobileController.dispose();
     _passwordController.dispose();
     _confirmController.dispose();
     super.dispose();
   }
 
-  void _onSignup() {
+  Future<void> _onSignup() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Simulate signup process
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Account created successfully!'),
-          backgroundColor: Colors.green,
-        ),
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      
+      final success = await userProvider.register(
+        firstName: _firstNameController.text.trim(),
+        lastName: _lastNameController.text.trim(),
+        email: _emailController.text.trim(),
+        mobile: _mobileController.text.trim(),
+        password: _passwordController.text,
+        confirmPassword: _confirmController.text,
       );
-      context.go('/login');
+      
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account created successfully! Please login.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/login');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(userProvider.error ?? 'Registration failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -112,6 +137,32 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: Column(
                         children: [
                           AppTextField(
+                            controller: _firstNameController,
+                            hint: 'First Name',
+                            icon: Icons.person,
+                            keyboardType: TextInputType.name,
+                            isStyled: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) return 'First name is required';
+                              return null;
+                            },
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 16),
+                          AppTextField(
+                            controller: _lastNameController,
+                            hint: 'Last Name',
+                            icon: Icons.person_outline,
+                            keyboardType: TextInputType.name,
+                            isStyled: true,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) return 'Last name is required';
+                              return null;
+                            },
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 16),
+                          AppTextField(
                             controller: _emailController,
                             hint: 'Email',
                             icon: Icons.email,
@@ -128,7 +179,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                           const SizedBox(height: 16),
                           AppTextField(
-                            controller: _nameController,
+                            controller: _mobileController,
                             hint: 'Mobile No',
                             icon: Icons.phone,
                             keyboardType: TextInputType.phone,
@@ -173,10 +224,14 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                     const SizedBox(height: 20),
                     // Register button
-                    AppButton(
-                      onPressed: _onSignup,
-                      label: 'Register',
-                      isStyled: true,
+                    Consumer<UserProvider>(
+                      builder: (context, userProvider, child) {
+                        return AppButton(
+                          onPressed: userProvider.isLoading ? null : _onSignup,
+                          label: userProvider.isLoading ? 'Registering...' : 'Register',
+                          isStyled: true,
+                        );
+                      },
                     ),
                     const SizedBox(height: 20),
                     // Social login buttons

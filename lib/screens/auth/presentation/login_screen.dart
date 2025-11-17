@@ -1,11 +1,13 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/robot_character.dart';
 import '../../../core/widgets/social_login_button.dart';
+import '../../../providers/user_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -26,16 +28,31 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _onLogin() {
+  Future<void> _onLogin() async {
     if (_formKey.currentState?.validate() ?? false) {
-      // Simulate login process
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Login successful!'),
-          backgroundColor: Colors.green,
-        ),
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      
+      final success = await userProvider.login(
+        _emailController.text.trim(),
+        _passwordController.text,
       );
-      context.go('/dashboard');
+      
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login successful!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        context.go('/dashboard');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(userProvider.error ?? 'Login failed'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -196,11 +213,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 20),
                     // Login button
-                    AppButton(
-                      onPressed: _onLogin,
-                      label: 'Login',
-                      icon: Icons.arrow_forward,
-                      isStyled: true,
+                    Consumer<UserProvider>(
+                      builder: (context, userProvider, child) {
+                        return AppButton(
+                          onPressed: userProvider.isLoading ? null : _onLogin,
+                          label: userProvider.isLoading ? 'Logging in...' : 'Login',
+                          icon: userProvider.isLoading ? null : Icons.arrow_forward,
+                          isStyled: true,
+                        );
+                      },
                     ),
                     const SizedBox(height: 20),
                     // Sign up link

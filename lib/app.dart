@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'providers/assessment_provider.dart';
 import 'providers/assessment_result_provider.dart';
 import 'providers/placement_provider.dart';
+import 'providers/user_provider.dart';
 import 'screens/profile/application/profile_provider.dart';
 
 /// CDAX App Root
@@ -17,20 +18,32 @@ class CdaxApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final GoRouter router = AppRouter.router;
-
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => AssessmentProvider()),
         ChangeNotifierProvider(create: (_) => AssessmentResultProvider()),
         ChangeNotifierProvider(create: (_) => PlacementProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
       ],
-      child: MaterialApp.router(
-        title: 'CDAX',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        routerConfig: router,
+      child: Consumer<UserProvider>(
+        builder: (context, userProvider, child) {
+          // Initialize user provider once
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!userProvider.isLoading) {
+              userProvider.initialize();
+            }
+          });
+          
+          final GoRouter router = AppRouter.router;
+          
+          return MaterialApp.router(
+            title: 'CDAX',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            routerConfig: router,
+          );
+        },
       ),
     );
   }

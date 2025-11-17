@@ -20,6 +20,8 @@ class ApiEndpoints {
   static const String resetPassword = '$auth/reset-password';
   static const String verifyEmail = '$auth/verify-email';
   static const String changePassword = '$auth/change-password';
+  static const String firstName = '$auth/firstName';
+  static const String getUserByEmail = '$auth/getUserByEmail';
   
   // User endpoints
   static const String userProfile = '$users/profile';

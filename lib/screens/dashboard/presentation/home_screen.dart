@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../application/dashboard_provider.dart';
 import '../widgets/course_card.dart';
 import '../widgets/suggestive_learning_card.dart';
 import '../widgets/progress_card.dart';
 import 'package:go_router/go_router.dart';
 import '../../courses/data/mock_course_repository.dart';
+import '../../../providers/user_provider.dart';
 
 /// HomeScreen
 /// Assumptions:
@@ -17,12 +19,51 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final userName = getMockUserName();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Welcome, $userName 👋'),
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            final user = userProvider.currentUser;
+            final userName = user?.firstName ?? getMockUserName();
+            return Text('Welcome, $userName 👋');
+          },
+        ),
         centerTitle: false,
+        actions: [
+          Consumer<UserProvider>(
+            builder: (context, userProvider, child) {
+              if (userProvider.isAuthenticated) {
+                return PopupMenuButton<String>(
+                  onSelected: (value) async {
+                    if (value == 'logout') {
+                      await userProvider.logout();
+                      // Navigate to login screen
+                      context.go('/login');
+                    }
+                  },
+                  itemBuilder: (BuildContext context) => [
+                    const PopupMenuItem<String>(
+                      value: 'logout',
+                      child: Row(
+                        children: [
+                          Icon(Icons.logout),
+                          SizedBox(width: 8),
+                          Text('Logout'),
+                        ],
+                      ),
+                    ),
+                  ],
+                  child: const Padding(
+                    padding: EdgeInsets.all(8.0),
+                    child: Icon(Icons.account_circle),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(

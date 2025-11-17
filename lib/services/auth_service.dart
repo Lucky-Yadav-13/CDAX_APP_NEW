@@ -1,6 +1,9 @@
 /// Authentication Service
 /// Handles user authentication with Spring Boot backend
+import 'dart:convert';
 import '../constants/api_endpoints.dart';
+import '../models/auth/auth_response_model.dart';
+import '../core/user_manager.dart';
 import 'http_service.dart';
 import 'storage_service.dart';
 
@@ -26,15 +29,20 @@ class AuthService {
       if (response.isSuccess && response.data != null) {
         final authResponse = response.data!;
         
-        // Store tokens and user data
-        await _storageService.setString('auth_token', authResponse.token);
-        if (authResponse.refreshToken != null) {
+        // Store user session in UserManager
+        await UserManager.setEmail(email);
+        
+        // Store tokens and user data if available
+        if (authResponse.token != null && authResponse.token!.isNotEmpty) {
+          await _storageService.setString('auth_token', authResponse.token!);
+          _httpService.setAuthToken(authResponse.token!);
+        }
+        if (authResponse.refreshToken != null && authResponse.refreshToken!.isNotEmpty) {
           await _storageService.setString('refresh_token', authResponse.refreshToken!);
         }
-        await _storageService.setString('user_data', authResponse.user.toJson().toString());
-        
-        // Set token in HTTP service
-        _httpService.setAuthToken(authResponse.token);
+        if (authResponse.user != null) {
+          await _storageService.setString('user_data', jsonEncode(authResponse.user!.toJson()));
+        }
       }
       
       return response;
@@ -45,35 +53,41 @@ class AuthService {
   
   // Register user
   Future<ApiResponse<AuthResponse>> register({
-    required String fullName,
+    required String firstName,
+    required String lastName,
     required String email,
+    required String mobile,
     required String password,
-    String? phoneNumber,
+    required String confirmPassword,
   }) async {
     try {
       final response = await _httpService.post<AuthResponse>(
         ApiEndpoints.register,
         (data) => AuthResponse.fromJson(data),
         body: {
-          'fullName': fullName,
+          'firstName': firstName,
+          'lastName': lastName,
           'email': email,
+          'mobile': mobile,
           'password': password,
-          if (phoneNumber != null) 'phoneNumber': phoneNumber,
+          'cpassword': confirmPassword,
         },
       );
       
       if (response.isSuccess && response.data != null) {
         final authResponse = response.data!;
         
-        // Store tokens and user data
-        await _storageService.setString('auth_token', authResponse.token);
-        if (authResponse.refreshToken != null) {
+        // Store tokens and user data if available
+        if (authResponse.token != null && authResponse.token!.isNotEmpty) {
+          await _storageService.setString('auth_token', authResponse.token!);
+          _httpService.setAuthToken(authResponse.token!);
+        }
+        if (authResponse.refreshToken != null && authResponse.refreshToken!.isNotEmpty) {
           await _storageService.setString('refresh_token', authResponse.refreshToken!);
         }
-        await _storageService.setString('user_data', authResponse.user.toJson().toString());
-        
-        // Set token in HTTP service
-        _httpService.setAuthToken(authResponse.token);
+        if (authResponse.user != null) {
+          await _storageService.setString('user_data', jsonEncode(authResponse.user!.toJson()));
+        }
       }
       
       return response;
@@ -100,6 +114,42 @@ class AuthService {
       return ApiResponse.error('Logout failed: ${e.toString()}');
     }
   }
+
+  // Get user's first name by email
+  Future<String?> getFirstName(String email) async {
+    try {
+      final response = await _httpService.get<Map<String, dynamic>>(
+        '/auth/firstName',
+        (data) => data as Map<String, dynamic>,
+        queryParams: {'email': email},
+      );
+      
+      if (response.isSuccess && response.data != null) {
+        return response.data!['firstName']?.toString();
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+  
+  // Get user details by email
+  Future<UserModel?> getUserByEmail(String email) async {
+    try {
+      final response = await _httpService.get<Map<String, dynamic>>(
+        '/auth/getUserByEmail',
+        (data) => data as Map<String, dynamic>,
+        queryParams: {'email': email},
+      );
+      
+      if (response.isSuccess && response.data != null && response.data!['status'] == 'success') {
+        return UserModel.fromJson(response.data!);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
   
   // Refresh token
   Future<ApiResponse<AuthResponse>> refreshToken() async {
@@ -121,13 +171,13 @@ class AuthService {
         final authResponse = response.data!;
         
         // Update stored tokens
-        await _storageService.setString('auth_token', authResponse.token);
-        if (authResponse.refreshToken != null) {
+        if (authResponse.token != null && authResponse.token!.isNotEmpty) {
+          await _storageService.setString('auth_token', authResponse.token!);
+          _httpService.setAuthToken(authResponse.token!);
+        }
+        if (authResponse.refreshToken != null && authResponse.refreshToken!.isNotEmpty) {
           await _storageService.setString('refresh_token', authResponse.refreshToken!);
         }
-        
-        // Update token in HTTP service
-        _httpService.setAuthToken(authResponse.token);
       }
       
       return response;
@@ -208,25 +258,30 @@ class AuthService {
     }
   }
   
-  // Check if user is authenticated
+  // Check if user is authenticated (using UserManager)
   Future<bool> isAuthenticated() async {
-    final token = _storageService.getString('auth_token');
-    return token != null && token.isNotEmpty;
+    final email = await UserManager.getEmail();
+    return email != null && email.isNotEmpty;
   }
   
   // Get current user from storage
-  Future<User?> getCurrentUser() async {
+  Future<UserModel?> getCurrentUser() async {
     try {
       final userDataString = _storageService.getString('user_data');
       if (userDataString != null) {
-        // Note: This is a simplified version. In real implementation,
-        // you'd parse the JSON string back to User object
-        // return User.fromJson(jsonDecode(userDataString));
+        // Parse JSON string back to UserModel
+        final Map<String, dynamic> userData = json.decode(userDataString);
+        return UserModel.fromJson(userData);
       }
       return null;
     } catch (e) {
       return null;
     }
+  }
+  
+  // Get current user email
+  Future<String?> getCurrentUserEmail() async {
+    return await UserManager.getEmail();
   }
   
   // Initialize auth service (call this at app startup)
@@ -239,62 +294,10 @@ class AuthService {
   
   // Clear local authentication data
   Future<void> _clearLocalData() async {
+    await UserManager.clearSession();
     await _storageService.remove('auth_token');
     await _storageService.remove('refresh_token');
     await _storageService.remove('user_data');
     _httpService.clearAuthToken();
-  }
-}
-
-// Placeholder classes - these will be replaced with your actual models
-class AuthResponse {
-  final String token;
-  final String? refreshToken;
-  final User user;
-  
-  AuthResponse({
-    required this.token,
-    this.refreshToken,
-    required this.user,
-  });
-  
-  factory AuthResponse.fromJson(Map<String, dynamic> json) {
-    return AuthResponse(
-      token: json['token'] ?? '',
-      refreshToken: json['refreshToken'],
-      user: User.fromJson(json['user'] ?? {}),
-    );
-  }
-}
-
-class User {
-  final String id;
-  final String fullName;
-  final String email;
-  final String? phoneNumber;
-  
-  User({
-    required this.id,
-    required this.fullName,
-    required this.email,
-    this.phoneNumber,
-  });
-  
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] ?? '',
-      fullName: json['fullName'] ?? '',
-      email: json['email'] ?? '',
-      phoneNumber: json['phoneNumber'],
-    );
-  }
-  
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'fullName': fullName,
-      'email': email,
-      'phoneNumber': phoneNumber,
-    };
   }
 }
