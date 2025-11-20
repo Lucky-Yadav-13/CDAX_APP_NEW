@@ -2,8 +2,8 @@
 // Automatically uses remote repository with mock fallback
 
 import '../../../factories/course_repository_factory.dart';
-import '../data/mock_course_repository.dart' show CourseRepository;
-export '../data/mock_course_repository.dart' show CourseRepository;
+import '../data/course_repository.dart';
+export '../data/course_repository.dart';
 
 /// Course provider utilities for backend integration
 class CourseProviders {

@@ -342,13 +342,19 @@ class _PaymentTransferScreenState extends State<PaymentTransferScreen> {
         accountHolderName: _nameController.text.trim(),
       );
 
-      final result = await controller.processTransferPayment(transferDetails);
+      await controller.processTransferPayment(
+        transferDetails: transferDetails,
+        amount: controller.selectedAmount ?? 0.0,
+        courseId: controller.selectedCourseId,
+        courseTitle: controller.selectedCourseTitle,
+      );
+      final result = controller.lastPaymentResult;
 
       if (mounted) {
-        if (result.success) {
+        if (result?.success == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message),
+              content: Text(result?.message ?? 'Payment successful'),
               backgroundColor: AppColors.success,
             ),
           );
@@ -357,7 +363,7 @@ class _PaymentTransferScreenState extends State<PaymentTransferScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message),
+              content: Text(result?.message ?? 'Payment failed'),
               backgroundColor: AppColors.error,
             ),
           );

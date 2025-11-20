@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../courses/data/mock_course_repository.dart';
+import '../../courses/application/course_providers.dart';
 
 class ModulesScreen extends StatefulWidget {
   const ModulesScreen({super.key});
@@ -10,7 +10,7 @@ class ModulesScreen extends StatefulWidget {
 }
 
 class _ModulesScreenState extends State<ModulesScreen> {
-  final _repo = MockCourseRepository();
+  final _repo = CourseProviders.getCourseRepository();
   late Future _loadFuture;
 
   @override

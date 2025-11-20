@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/assessment/assessment_result_model.dart';
 import '../models/assessment/question_model.dart';
-import '../services/assessment_mock_service.dart';
+
 
 class AssessmentResultProvider extends ChangeNotifier {
-  final AssessmentMockService _service = AssessmentMockService();
+  // Assessment result submission will use backend endpoint
   
   // State variables
   AssessmentResult? _result;
@@ -32,12 +32,23 @@ class AssessmentResultProvider extends ChangeNotifier {
     try {
       final endTime = DateTime.now();
       
-      _result = await _service.submitAssessmentResult(
+      // TODO: Implement backend assessment result submission
+      // For now, create a simple result
+      _result = AssessmentResult(
+        id: 'temp_${DateTime.now().millisecondsSinceEpoch}',
         assessmentId: assessmentId,
         userId: userId,
-        userAnswers: userAnswers,
+        score: 0,
+        totalQuestions: userAnswers.length,
+        correctAnswers: 0,
+        wrongAnswers: 0,
+        skippedAnswers: 0,
+        percentage: 0.0,
+        passed: false,
         startTime: startTime,
         endTime: endTime,
+        timeTaken: endTime.difference(startTime),
+        answers: userAnswers.map((k, v) => MapEntry(k, v.toJson())),
       );
       
       notifyListeners();

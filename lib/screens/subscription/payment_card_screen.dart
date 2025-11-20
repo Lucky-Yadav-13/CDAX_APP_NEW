@@ -395,13 +395,19 @@ class _PaymentCardScreenState extends State<PaymentCardScreen> {
         holderName: _nameController.text.trim(),
       );
 
-      final result = await controller.processCardPayment(cardDetails);
+      await controller.processCardPayment(
+        cardDetails: cardDetails,
+        amount: controller.selectedAmount ?? 0.0,
+        courseId: controller.selectedCourseId,
+        courseTitle: controller.selectedCourseTitle,
+      );
+      final result = controller.lastPaymentResult;
 
       if (mounted) {
-        if (result.success) {
+        if (result?.success == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message),
+              content: Text(result?.message ?? 'Payment successful'),
               backgroundColor: AppColors.success,
             ),
           );
@@ -410,7 +416,7 @@ class _PaymentCardScreenState extends State<PaymentCardScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message),
+              content: Text(result?.message ?? 'Payment failed'),
               backgroundColor: AppColors.error,
             ),
           );

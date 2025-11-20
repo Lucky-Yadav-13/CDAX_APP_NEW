@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../application/profile_provider.dart';
-import '../../courses/data/mock_course_repository.dart';
+import '../../courses/application/course_providers.dart';
 import 'profile_edit_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -233,7 +233,7 @@ class _EnrolledCoursesSheet extends StatelessWidget {
 
   Future<List<_MiniCourse>> _loadEnrolled() async {
     // TODO: Replace with backend call; for now using mock repo
-    final repo = MockCourseRepository();
+    final repo = CourseProviders.getCourseRepository();
     final all = await repo.getCourses();
     return all
         .where((c) => c.isSubscribed)

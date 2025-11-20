@@ -1,27 +1,25 @@
 // Remote Course Repository for Spring Boot backend integration
 // Implements the CourseRepository interface with HTTP calls
-// Falls back to MockCourseRepository on any error
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'course_repository.dart';
 import 'models/course.dart';
 import 'models/module.dart';
 import 'models/video.dart';
-import 'mock_course_repository.dart';
+
 import '../../../models/assessment/question_model.dart';
 import '../../../models/assessment/assessment_model.dart';
 
 /// Remote implementation of CourseRepository that communicates with Spring Boot backend
-/// Automatically falls back to mock data if backend is unavailable
 class RemoteCourseRepository implements CourseRepository {
   final String baseUrl;
-  final MockCourseRepository _fallbackRepository;
   final Duration timeout;
   
   RemoteCourseRepository({
     required this.baseUrl,
     this.timeout = const Duration(seconds: 10),
-  }) : _fallbackRepository = MockCourseRepository() {
+  }) {
     print('🔗 RemoteCourseRepository initialized with baseUrl: $baseUrl');
   }
 
@@ -107,10 +105,7 @@ class RemoteCourseRepository implements CourseRepository {
       }
     } catch (e) {
       print('   🚨 Error fetching courses from backend: $e');
-      print('   🔄 Falling back to mock data...');
-      
-      // Fallback to mock repository
-      return await _fallbackRepository.getCourses(search: search, page: page);
+      rethrow;
     }
   }
 
@@ -162,10 +157,7 @@ class RemoteCourseRepository implements CourseRepository {
       }
     } catch (e) {
       print('   🚨 Error fetching course details from backend: $e');
-      print('   🔄 Falling back to mock data...');
-      
-      // Fallback to mock repository
-      return await _fallbackRepository.getCourseById(id);
+      rethrow;
     }
   }
 
@@ -210,10 +202,7 @@ class RemoteCourseRepository implements CourseRepository {
       }
     } catch (e) {
       print('   🚨 Error enrolling in course via backend: $e');
-      print('   🔄 Falling back to mock enrollment...');
-      
-      // Fallback to mock repository
-      return await _fallbackRepository.enrollInCourse(courseId);
+      rethrow;
     }
   }
 
@@ -249,10 +238,7 @@ class RemoteCourseRepository implements CourseRepository {
       }
     } catch (e) {
       print('   🚨 Error unenrolling from course via backend: $e');
-      print('   🔄 Falling back to mock unenrollment...');
-      
-      // Fallback to mock repository
-      return await _fallbackRepository.unenrollFromCourse(courseId);
+      rethrow;
     }
   }
 
@@ -289,7 +275,7 @@ class RemoteCourseRepository implements CourseRepository {
         
         // Mark local mock fallback as purchased as well so client-side access works
         try {
-          await _fallbackRepository.purchaseCourse(courseId);
+          // Fallback removed - using backend only
         } catch (_) {}
 
         return jsonResponse['success'] == true || 
@@ -302,10 +288,7 @@ class RemoteCourseRepository implements CourseRepository {
       }
     } catch (e) {
       print('   🚨 Error purchasing course via backend: $e');
-      print('   🔄 Falling back to mock purchase...');
-      
-      // Fallback to mock repository
-      return await _fallbackRepository.purchaseCourse(courseId);
+      rethrow;
     }
   }
 
@@ -368,12 +351,7 @@ class RemoteCourseRepository implements CourseRepository {
       }
     } catch (e) {
       print('   🚨 Error fetching questions from backend: $e');
-      print('   🔄 Falling back to mock data...');
-      
-      // Fallback to mock repository
-      final mockQuestions = await _fallbackRepository.getAssessmentQuestions(assessmentId);
-      print('   ✅ Mock fallback returned ${mockQuestions.length} questions');
-      return mockQuestions;
+      rethrow;
     }
   }
 
@@ -441,10 +419,7 @@ class RemoteCourseRepository implements CourseRepository {
       }
     } catch (e) {
       print('   🚨 Error fetching assessments from backend: $e');
-      print('   🔄 Falling back to mock data...');
-      
-      // Fallback to mock repository
-      return await _fallbackRepository.getModuleAssessments(moduleId);
+      rethrow;
     }
   }
 

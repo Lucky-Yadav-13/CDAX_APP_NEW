@@ -5,7 +5,7 @@ import '../widgets/course_card.dart';
 import '../widgets/suggestive_learning_card.dart';
 import '../widgets/progress_card.dart';
 import 'package:go_router/go_router.dart';
-import '../../courses/data/mock_course_repository.dart';
+import '../../courses/application/course_providers.dart';
 import '../../../providers/user_provider.dart';
 
 /// HomeScreen
@@ -123,7 +123,7 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () async {
                   // Use last-played info to deep link; fallback to first course/module
                   try {
-                    final repo = MockCourseRepository();
+                    final repo = CourseProviders.getCourseRepository();
                     final courses = await repo.getCourses();
                     if (courses.isEmpty) return;
                     final course = courses.first;
@@ -221,7 +221,7 @@ class HomeScreen extends StatelessWidget {
                     progress: (index + 1) * 0.12 % 1.0,
                     onTap: () async {
                       try {
-                        final repo = MockCourseRepository();
+                        final repo = CourseProviders.getCourseRepository();
                         final courses = await repo.getCourses();
                         if (courses.isEmpty) return;
                         final course = courses[(index) % courses.length];

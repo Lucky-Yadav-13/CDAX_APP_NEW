@@ -191,7 +191,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                      // Prepare purchase context for this course
                                      SubscriptionController.instance.setPurchaseContext(
                                        courseId: course.id,
-                                       title: course.title,
+                                       courseTitle: course.title,
                                        amount: 399.0,
                                      );
                                      // Navigate to order summary first

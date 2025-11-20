@@ -233,13 +233,19 @@ class _PaymentNetbankingScreenState extends State<PaymentNetbankingScreen> {
     final controller = SubscriptionController.instance;
 
     try {
-      final result = await controller.processNetbankingPayment(_selectedBank!);
+      await controller.processNetbankingPayment(
+        netBankingDetails: _selectedBank!,
+        amount: controller.selectedAmount ?? 0.0,
+        courseId: controller.selectedCourseId,
+        courseTitle: controller.selectedCourseTitle,
+      );
+      final result = controller.lastPaymentResult;
 
       if (mounted) {
-        if (result.success) {
+        if (result?.success == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message),
+              content: Text(result?.message ?? 'Payment successful'),
               backgroundColor: AppColors.success,
             ),
           );
@@ -248,7 +254,7 @@ class _PaymentNetbankingScreenState extends State<PaymentNetbankingScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result.message),
+              content: Text(result?.message ?? 'Payment failed'),
               backgroundColor: AppColors.error,
             ),
           );

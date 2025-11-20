@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../application/course_providers.dart';
 import '../../courses/data/models/module.dart';
-import '../../../services/mock_video_service.dart';
+
 import '../../../services/assessment_service.dart';
 import '../../../models/assessment/assessment_model.dart';
 
@@ -125,10 +125,8 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
                               return;
                             }
 
-                            // Use specific video URL from the video object
-                            final url = video.youtubeUrl.isNotEmpty 
-                              ? video.youtubeUrl 
-                              : await MockVideoService.getModuleVideoUrl(courseId: widget.courseId, moduleId: widget.moduleId);
+                            // Use video URL from backend data
+                            final url = video.youtubeUrl;
                             if (url.isNotEmpty) {
                               // ignore: use_build_context_synchronously
                               context.push('/dashboard/courses/${widget.courseId}/module/${widget.moduleId}/video?url=$url');
@@ -204,7 +202,7 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
                               );
                               return;
                             }
-                            final url = await MockVideoService.getModuleVideoUrl(courseId: widget.courseId, moduleId: widget.moduleId);
+                            final url = currentModule.videoUrl;
                             if (url.isNotEmpty) {
                               // ignore: use_build_context_synchronously
                               context.push('/dashboard/courses/${widget.courseId}/module/${widget.moduleId}/video?url=$url');

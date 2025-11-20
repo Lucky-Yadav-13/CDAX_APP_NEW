@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import '../models/assessment/assessment_model.dart';
 import '../models/assessment/question_model.dart';
-import '../services/assessment_mock_service.dart';
+import '../services/assessment_service.dart';
 
 class AssessmentProvider extends ChangeNotifier {
-  final AssessmentMockService _service = AssessmentMockService();
+  // Using AssessmentService which uses backend repository
   
   // State variables
   List<Assessment> _assessments = [];
@@ -58,7 +58,8 @@ class AssessmentProvider extends ChangeNotifier {
     _clearError();
     
     try {
-      _assessments = await _service.getAvailableAssessments();
+      // For now, return empty list until backend provides assessment list endpoint
+      _assessments = [];
       notifyListeners();
     } catch (e) {
       _setError('Failed to load assessments: ${e.toString()}');
@@ -80,7 +81,7 @@ class AssessmentProvider extends ChangeNotifier {
       );
       
       // Load questions
-      _currentQuestions = await _service.getQuestionsForAssessment(assessmentId);
+      _currentQuestions = await AssessmentService.getAssessmentQuestions(assessmentId: assessmentId);
       
       // Reset state
       _currentQuestionIndex = 0;

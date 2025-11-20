@@ -26,16 +26,52 @@ class _PaymentUpiScreenState extends State<PaymentUpiScreen> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _submitting = true);
-    final result = await sub.processUpiPayment(_upiCtrl.text.trim());
-    if (!mounted) return;
-    setState(() => _submitting = false);
-    if (result.success) {
-      context.push('/dashboard/subscription/result');
-    } else {
+    
+    // Validate payment context
+    if (sub.selectedAmount == null || sub.selectedAmount! <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.message)),
+        const SnackBar(content: Text('Payment amount not set. Please go back and select a course.')),
       );
+      return;
+    }
+    
+    if (sub.selectedCourseId == null || sub.selectedCourseId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Course not selected. Please go back and select a course.')),
+      );
+      return;
+    }
+    
+    setState(() => _submitting = true);
+    
+    try {
+      await sub.processUpiPayment(
+        upiId: _upiCtrl.text.trim(),
+        amount: sub.selectedAmount!,
+        courseId: sub.selectedCourseId!,
+        courseTitle: sub.selectedCourseTitle ?? 'Course',
+      );
+      
+      final result = sub.lastPaymentResult;
+      if (!mounted) return;
+      
+      if (result?.success == true) {
+        context.push('/dashboard/subscription/result');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result?.message ?? 'Payment failed')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payment error: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
     }
   }
 

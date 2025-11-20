@@ -14,8 +14,8 @@ void main() {
       final controller = SubscriptionController.instance;
       controller.resetPaymentState();
       controller.setPurchaseContext(
-        courseId: 'test_course_1',
-        title: 'Test Course',
+        courseId: 'test-course-id',
+        courseTitle: 'Test Course',
         amount: 299.0,
       );
     });
@@ -242,7 +242,7 @@ void main() {
         final controller = SubscriptionController.instance;
         controller.setPurchaseContext(
           courseId: 'test_course_1',
-          title: 'Advanced Flutter Course',
+          courseTitle: 'Advanced Flutter Course',
           amount: 599.0,
         );
 
