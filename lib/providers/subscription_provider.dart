@@ -11,7 +11,7 @@ import '../models/netbanking_details.dart';
 import '../models/transfer_details.dart';
 
 import '../services/payment_gateway_adapter.dart';
-import '../services/mock_payment_service.dart';
+import '../services/payment_service.dart';
 import '../screens/courses/application/course_providers.dart';
 
 
@@ -83,7 +83,7 @@ class SubscriptionController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Phase 2: Process a card payment (simulated flow)
+  /// Phase 2: Process card payment with backend integration
   Future<void> processCardPayment({
     required CardDetails cardDetails,
     required double amount,
@@ -96,43 +96,70 @@ class SubscriptionController extends ChangeNotifier {
     selectedAmount = amount;
     
     try {
-      // Phase 3: Use payment gateway adapter
-      final result = await _paymentGateway.processCardPayment(
-        cardDetails: cardDetails,
-        amount: amount,
-        currency: 'INR',
+      // Step 1: Create purchase order on backend
+      if (courseId == null || courseTitle == null) {
+        throw Exception('Course ID and title are required for payment');
+      }
+      
+      final orderData = await PaymentService.createPurchaseOrder(
         courseId: courseId,
         courseTitle: courseTitle,
+        amount: amount,
       );
       
-      _lastPaymentResult = result;
+      final backendOrderId = orderData['orderId'] as String;
       
-      if (result.success) {
-        lastOrderId = result.orderId ?? 'ORDER_${DateTime.now().millisecondsSinceEpoch}';
+      // Step 2: Process payment with gateway using order info
+      final gatewayResult = await _paymentGateway.openCheckout(
+        orderId: backendOrderId,
+        amount: amount,
+        currency: 'INR',
+        name: courseTitle,
+        description: 'Course: $courseTitle',
+        notes: {
+          'course_id': courseId,
+          'payment_method': 'card',
+        },
+      );
+      
+      // Step 3: Verify payment with backend
+      if (gatewayResult.success && gatewayResult.paymentId != null) {
+        final verificationResult = await PaymentService.verifyPayment(
+          orderId: backendOrderId,
+          paymentId: gatewayResult.paymentId!,
+          signature: gatewayResult.signature,
+        );
         
-        // Mark course as purchased in repository if courseId provided
-        if (courseId != null) {
-          try {
-            await _courseRepo.purchaseCourse(courseId);
-          } catch (e) {
-            if (kDebugMode) {
-              debugPrint('Failed to mark course as purchased: $e');
-            }
-          }
+        _lastPaymentResult = verificationResult;
+        
+        if (verificationResult.success) {
+          lastOrderId = backendOrderId;
+          
+          // Step 4: Refresh course data to show unlocked content
+          await _refreshCourseAfterPurchase(courseId);
+          
+          _updateStatus(PaymentStatus.success, 'Card payment successful! Order ID: $lastOrderId');
+        } else {
+          _setError(verificationResult.message);
         }
-        
-        _updateStatus(PaymentStatus.success, 'Payment successful! Order ID: $lastOrderId');
       } else {
-        _setError(result.message);
+        _lastPaymentResult = PaymentResult(
+          success: gatewayResult.success,
+          message: gatewayResult.message,
+          paymentId: gatewayResult.paymentId,
+          orderId: gatewayResult.orderId,
+          signature: gatewayResult.signature,
+        );
+        _setError(gatewayResult.message);
       }
     } catch (e) {
-      _setError('Payment processing failed: ${e.toString()}');
+      _setError('Card payment failed: ${e.toString()}');
     } finally {
       _setProcessing(false);
     }
   }
 
-  /// Phase 2: Process UPI payment using mock service
+  /// Phase 2: Process UPI payment with backend integration
   Future<void> processUpiPayment({
     required String upiId,
     required double amount,
@@ -145,33 +172,67 @@ class SubscriptionController extends ChangeNotifier {
     selectedAmount = amount;
     
     try {
-      // Use mock service directly for UPI payments
-      final result = await MockPaymentService.processUpi(
-        upiId: upiId,
-        plan: 'Course Purchase',
+      // Step 1: Create purchase order on backend
+      if (courseId == null || courseTitle == null) {
+        throw Exception('Course ID and title are required for payment');
+      }
+      
+      final orderData = await PaymentService.createPurchaseOrder(
         courseId: courseId,
         courseTitle: courseTitle,
         amount: amount,
       );
       
-      _lastPaymentResult = result;
+      final backendOrderId = orderData['orderId'] as String;
       
-      if (result.success) {
-        lastOrderId = result.orderId ?? 'ORDER_${DateTime.now().millisecondsSinceEpoch}';
+      // Step 2: Process payment with gateway (generic method for UPI)
+      final gatewayResult = await _paymentGateway.openCheckout(
+        orderId: backendOrderId,
+        amount: amount,
+        currency: 'INR',
+        name: courseTitle,
+        description: 'Course: $courseTitle',
+        notes: {
+          'course_id': courseId,
+          'payment_method': 'upi',
+          'upi_id': upiId,
+        },
+      );
+      
+      // Step 3: Verify payment with backend
+      if (gatewayResult.success && gatewayResult.paymentId != null) {
+        final verificationResult = await PaymentService.verifyPayment(
+          orderId: backendOrderId,
+          paymentId: gatewayResult.paymentId!,
+          signature: gatewayResult.signature,
+        );
         
-        if (courseId != null) {
-          try {
-            await _courseRepo.purchaseCourse(courseId);
-          } catch (e) {
-            if (kDebugMode) {
-              debugPrint('Failed to mark course as purchased: $e');
-            }
-          }
+        _lastPaymentResult = PaymentResult(
+          success: verificationResult.success,
+          message: verificationResult.message,
+          paymentId: gatewayResult.paymentId,
+          orderId: backendOrderId,
+          signature: gatewayResult.signature,
+        );
+        
+        if (verificationResult.success) {
+          lastOrderId = backendOrderId;
+          
+          // Step 4: Refresh course data to show unlocked content
+          await _refreshCourseAfterPurchase(courseId);
+          
+          _updateStatus(PaymentStatus.success, 'UPI payment successful! Order ID: $lastOrderId');
+        } else {
+          _setError(verificationResult.message);
         }
-        
-        _updateStatus(PaymentStatus.success, 'UPI payment successful! Order ID: $lastOrderId');
       } else {
-        _setError(result.message);
+        _lastPaymentResult = PaymentResult(
+          success: false,
+          message: gatewayResult.message,
+          paymentId: gatewayResult.paymentId,
+          orderId: backendOrderId,
+        );
+        _setError(gatewayResult.message);
       }
     } catch (e) {
       _setError('UPI payment failed: ${e.toString()}');
@@ -318,6 +379,20 @@ class SubscriptionController extends ChangeNotifier {
       return 'Please enter a valid UPI ID';
     }
     return null;
+  }
+
+  /// Refresh course data after successful purchase
+  /// This ensures the UI shows unlocked content immediately
+  Future<void> _refreshCourseAfterPurchase(String courseId) async {
+    try {
+      print('🔄 Refreshing course data after purchase...');
+      final repo = CourseProviders.getCourseRepository();
+      await repo.getCourseById(courseId);
+      print('   ✅ Course data refreshed successfully');
+    } catch (e) {
+      print('   ⚠️ Failed to refresh course data: $e');
+      // Non-critical error - don't fail the payment process
+    }
   }
 
   /// Public alias for processNetBankingPayment 

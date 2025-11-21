@@ -8,6 +8,7 @@ class Assessment {
   final int totalQuestions;
   final int passingScore;
   final bool isActive;
+  final bool isLocked;
 
   const Assessment({
     required this.id,
@@ -19,6 +20,7 @@ class Assessment {
     required this.totalQuestions,
     required this.passingScore,
     this.isActive = true,
+    this.isLocked = false,
   });
 
   factory Assessment.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class Assessment {
       totalQuestions: json['total_questions'] ?? json['totalQuestions'] ?? 0,
       passingScore: json['passing_score'] ?? json['passingScore'] ?? json['totalMarks'] ?? 0,
       isActive: json['is_active'] ?? json['isActive'] ?? true,
+      isLocked: json['isLocked'] ?? false,
     );
   }
 
@@ -47,6 +50,7 @@ class Assessment {
       'total_questions': totalQuestions,
       'passing_score': passingScore,
       'is_active': isActive,
+      'isLocked': isLocked,
     };
   }
 

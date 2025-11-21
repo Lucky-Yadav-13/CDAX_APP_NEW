@@ -430,11 +430,15 @@ class RemoteCourseRepository implements CourseRepository {
   //   only video at index 0 is unlocked. All other modules/videos are locked.
   Course _applyLockingToCourse(Course course) {
     final bool subscribed = course.isSubscribed;
+    print('🔒 Course Lock Logic: ${course.title}');
+    print('   📊 isSubscribed: $subscribed');
+    print('   📚 Total modules: ${course.modules.length}');
 
     final modules = <Module>[];
     for (var mIndex = 0; mIndex < course.modules.length; mIndex++) {
       final m = course.modules[mIndex];
       final bool moduleLocked = !subscribed && mIndex > 0;
+      print('   📝 Module $mIndex: ${m.title} - will be locked: $moduleLocked');
 
       final videos = <Video>[];
       for (var vIndex = 0; vIndex < m.videos.length; vIndex++) {
@@ -462,7 +466,7 @@ class RemoteCourseRepository implements CourseRepository {
         isLocked: moduleLocked,
         orderIndex: m.orderIndex,
         videos: videos,
-        // If module is locked, ensure its assessment is marked inactive so UI treats it as locked
+        // If module is locked, ensure its assessment is locked as well
         assessment: m.assessment != null
             ? Assessment(
                 id: m.assessment!.id,
@@ -474,6 +478,7 @@ class RemoteCourseRepository implements CourseRepository {
                 totalQuestions: m.assessment!.totalQuestions,
                 passingScore: m.assessment!.passingScore,
                 isActive: !moduleLocked,
+                isLocked: moduleLocked,
               )
             : null,
       ));

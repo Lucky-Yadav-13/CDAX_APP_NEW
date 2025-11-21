@@ -40,6 +40,37 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
     }
   }
 
+  List<Assessment> _getAssessmentsWithModuleLockState(Module module) {
+    // Assessment should be locked if ANY video in the module is locked (stricter policy)
+    final bool hasLockedVideos = module.videos.any((video) => video.isLocked);
+    final bool assessmentShouldBeLocked = module.isLocked || hasLockedVideos;
+    
+    print('🔒 Debug Assessment Lock State:');
+    print('   Module: ${module.title} - isLocked: ${module.isLocked}');
+    print('   Videos locked count: ${module.videos.where((v) => v.isLocked).length}/${module.videos.length}');
+    print('   Has locked videos: $hasLockedVideos');
+    print('   Assessment will be locked: $assessmentShouldBeLocked');
+    
+    final lockedAssessments = _assessments.map((assessment) {
+      print('   Assessment: ${assessment.title} - will be locked: $assessmentShouldBeLocked');
+      return Assessment(
+        id: assessment.id,
+        title: assessment.title,
+        category: assessment.category,
+        duration: assessment.duration,
+        difficulty: assessment.difficulty,
+        description: assessment.description,
+        totalQuestions: assessment.totalQuestions,
+        passingScore: assessment.passingScore,
+        isActive: assessment.isActive,
+        isLocked: assessmentShouldBeLocked, // Lock if module is locked OR any video is locked
+      );
+    }).toList();
+    
+    print('   Locked assessments count: ${lockedAssessments.length}');
+    return lockedAssessments;
+  }
+
   @override
   Widget build(BuildContext context) {
     // Get repository using factory
@@ -265,12 +296,21 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      ..._assessments.map((assessment) => Container(
+                      ..._getAssessmentsWithModuleLockState(currentModule).map((assessment) => Container(
                         width: double.infinity,
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                         child: GestureDetector(
                           onTap: () {
+                            print('🎯 Assessment tap: ${assessment.title} - isLocked: ${assessment.isLocked}');
+                            // Block navigation if this assessment is locked for the user
+                            if (assessment.isLocked) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('This assessment is locked. Purchase the course to access.')),
+                              );
+                              return;
+                            }
+                            
                             // Navigate to assessment screen
                             print('🚀 Navigating to assessment: ${assessment.id}');
                             print('   📍 Course: ${widget.courseId}, Module: ${widget.moduleId}');
@@ -278,10 +318,10 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
                           },
                           child: Row(
                             children: [
-                              // Assessment icon - fixed size
+                              // Assessment icon - fixed size, show lock when locked
                               Icon(
-                                Icons.quiz,
-                                color: Theme.of(context).colorScheme.secondary,
+                                assessment.isLocked ? Icons.lock : Icons.quiz,
+                                color: assessment.isLocked ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4) : Theme.of(context).colorScheme.secondary,
                                 size: 24,
                               ),
                               const SizedBox(width: 12),
@@ -313,12 +353,12 @@ class _ModulePlayerScreenState extends State<ModulePlayerScreen> {
                                   ],
                                 ),
                               ),
-                              // Navigation arrow - fixed size
+                              // Navigation arrow or lock icon - fixed size
                               Padding(
                                 padding: const EdgeInsets.only(left: 8),
                                 child: Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                                  assessment.isLocked ? Icons.lock_outline : Icons.arrow_forward_ios,
+                                  color: assessment.isLocked ? Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5) : Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                   size: 16,
                                 ),
                               ),

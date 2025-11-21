@@ -10,9 +10,11 @@ import '../models/card_details.dart';
 import '../models/netbanking_details.dart';
 import '../models/transfer_details.dart';
 import 'mock_payment_service.dart';
+import 'payment_service.dart';
 
 // IMPORTANT: Set to false for production and provide environment variable
-const bool useMockPayment = true;
+// Set to false for production-ready backend integration
+const bool useMockPayment = false;
 
 /// Response from payment gateway operations
 class PaymentGatewayResponse {
@@ -90,22 +92,18 @@ class PaymentGatewayAdapter {
       );
     }
 
-    // TODO_PRODUCTION: Replace with actual backend API call
-    // Example implementation:
-    // final response = await http.post(
-    //   Uri.parse('${ApiConfig.baseUrl}/payments/create-order'),
-    //   headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
-    //   body: jsonEncode({
-    //     'amount': (amount * 100).toInt(), // Convert to paise
-    //     'currency': currency,
-    //     'course_id': courseId,
-    //     'course_title': courseTitle,
-    //     'metadata': metadata,
-    //   }),
-    // );
-    // return jsonDecode(response.body)['order_id'];
+    // Production: Use PaymentService for backend integration
+    if (courseId == null || courseTitle == null) {
+      throw Exception('Course ID and title are required for order creation');
+    }
     
-    throw UnimplementedError('Backend integration required for production mode');
+    final orderData = await PaymentService.createPurchaseOrder(
+      courseId: courseId,
+      courseTitle: courseTitle,
+      amount: amount,
+    );
+    
+    return orderData['orderId'] as String;
   }
 
   /// Open Razorpay checkout for payment

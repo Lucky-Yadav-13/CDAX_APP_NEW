@@ -46,11 +46,15 @@ class Module {
 
       // Parse assessment - backend doesn't include assessment in module JSON
       // Assessment needs to be fetched separately using API
+      final moduleIsLocked = _parseBoolSafely(json['isLocked'], false);
       Assessment? assessment;
       if (json['assessment'] != null && json['assessment'] is Map<String, dynamic>) {
         try {
-          assessment = Assessment.fromJson(json['assessment']);
-          print('   ├─ Found assessment: ${assessment.title}');
+          final assessmentJson = Map<String, dynamic>.from(json['assessment']);
+          // Ensure assessment inherits module's lock state
+          assessmentJson['isLocked'] = moduleIsLocked;
+          assessment = Assessment.fromJson(assessmentJson);
+          print('   ├─ Found assessment: ${assessment.title} (locked: ${assessment.isLocked})');
         } catch (e) {
           print('   ⚠️ Error parsing assessment: $e');
         }
@@ -61,7 +65,7 @@ class Module {
         title: json['title']?.toString() ?? 'Untitled Module',
         description: json['description']?.toString() ?? '',
         durationSec: _parseIntSafely(json['durationSec'] ?? json['duration'], 0),
-        isLocked: _parseBoolSafely(json['isLocked'], false),
+        isLocked: moduleIsLocked,
         orderIndex: _parseIntSafely(json['orderIndex'] ?? json['order'], 0),
         videos: videosList,
         assessment: assessment,
