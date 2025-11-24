@@ -1,5 +1,5 @@
-/// Authentication Service
-/// Handles user authentication with Spring Boot backend
+// Authentication Service
+// Handles user authentication with Spring Boot backend
 import 'dart:convert';
 import '../constants/api_endpoints.dart';
 import '../models/auth/auth_response_model.dart';

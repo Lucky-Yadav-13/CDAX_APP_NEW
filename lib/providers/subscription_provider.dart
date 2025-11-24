@@ -3,6 +3,7 @@
 // service calls with real API in services/mock_payment_service.dart when backend is ready.
 
 import 'dart:async';
+import 'dart:developer';
 import 'package:flutter/foundation.dart';
 
 import '../models/payment_result.dart';
@@ -385,12 +386,12 @@ class SubscriptionController extends ChangeNotifier {
   /// This ensures the UI shows unlocked content immediately
   Future<void> _refreshCourseAfterPurchase(String courseId) async {
     try {
-      print('🔄 Refreshing course data after purchase...');
+      log('🔄 Refreshing course data after purchase...');
       final repo = CourseProviders.getCourseRepository();
       await repo.getCourseById(courseId);
-      print('   ✅ Course data refreshed successfully');
+      log('   ✅ Course data refreshed successfully');
     } catch (e) {
-      print('   ⚠️ Failed to refresh course data: $e');
+      log('   ⚠️ Failed to refresh course data: $e');
       // Non-critical error - don't fail the payment process
     }
   }

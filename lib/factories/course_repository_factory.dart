@@ -2,6 +2,7 @@
 // Automatically chooses between remote and mock repository based on configuration
 
 import 'package:flutter/foundation.dart';
+import 'dart:developer';
 import '../screens/courses/data/course_repository.dart';
 import '../screens/courses/data/remote_course_repository.dart';
 import '../config/backend_config.dart';
@@ -36,7 +37,7 @@ class CourseRepositoryFactory {
   
   /// Force recreate the repository instance (useful for testing or config changes)
   static void reset() {
-    print('🔄 CourseRepositoryFactory: Resetting repository instance');
+    log('🔄 CourseRepositoryFactory: Resetting repository instance');
     _instance = null;
   }
   

@@ -1,5 +1,5 @@
-/// API Service
-/// Main API service that coordinates all API operations
+// API Service
+// Main API service that coordinates all API operations
 import '../core/base_api_service.dart';
 import '../core/api_response.dart';
 import '../models/user_model.dart';

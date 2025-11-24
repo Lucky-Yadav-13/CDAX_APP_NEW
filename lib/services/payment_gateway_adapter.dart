@@ -332,7 +332,7 @@ class PaymentGatewayAdapter {
     );
   }
 
-  /// Verify payment on backend (mocked in development)
+  /// Verify payment on backend (PRODUCTION READY)
   Future<PaymentResult> verifyPaymentOnBackend({
     required String paymentId,
     required String orderId,
@@ -346,20 +346,24 @@ class PaymentGatewayAdapter {
       );
     }
 
-    // TODO_PRODUCTION: Replace with actual backend verification
-    // Example implementation:
-    // final response = await http.post(
-    //   Uri.parse('${ApiConfig.baseUrl}/payments/verify'),
-    //   headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
-    //   body: jsonEncode({
-    //     'payment_id': paymentId,
-    //     'order_id': orderId,
-    //     'signature': signature,
-    //   }),
-    // );
-    // return PaymentResult.fromJson(jsonDecode(response.body));
-    
-    throw UnimplementedError('Backend integration required for production mode');
+    // PRODUCTION: Use PaymentService for backend verification
+    try {
+      final result = await PaymentService.verifyPayment(
+        orderId: orderId,
+        paymentId: paymentId,
+        signature: signature,
+      );
+      
+      return result;
+    } catch (e) {
+      debugPrint('PaymentGatewayAdapter: Backend verification failed: $e');
+      return PaymentResult(
+        success: false,
+        message: 'Payment verification failed: ${e.toString()}',
+        paymentId: paymentId,
+        orderId: orderId,
+      );
+    }
   }
 
   // Razorpay event handlers

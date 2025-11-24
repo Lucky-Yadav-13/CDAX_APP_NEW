@@ -1,5 +1,5 @@
-/// User Manager
-/// Handles user session management using Flutter Secure Storage
+// User Manager
+// Handles user session management using Flutter Secure Storage
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class UserManager {

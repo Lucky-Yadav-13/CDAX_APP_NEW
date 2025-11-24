@@ -1,11 +1,11 @@
-/// API Integration Example for Home Screen
-/// This file demonstrates how to integrate the Spring Boot API with your existing home screen
-/// 
-/// INTEGRATION STEPS:
-/// 1. Add this to your existing home screen
-/// 2. Replace the existing hardcoded data with API calls
-/// 3. Update your providers to use the new services
-/// 4. Test with your actual API endpoints
+// API Integration Example for Home Screen
+// This file demonstrates how to integrate the Spring Boot API with your existing home screen
+// 
+// INTEGRATION STEPS:
+// 1. Add this to your existing home screen
+// 2. Replace the existing hardcoded data with API calls
+// 3. Update your providers to use the new services
+// 4. Test with your actual API endpoints
 
 import 'package:flutter/material.dart';
 import '../services/course_service.dart';

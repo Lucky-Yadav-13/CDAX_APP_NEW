@@ -49,6 +49,8 @@ class _SignupScreenState extends State<SignupScreen> {
         confirmPassword: _confirmController.text,
       );
       
+      if (!mounted) return;
+      
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -56,9 +58,9 @@ class _SignupScreenState extends State<SignupScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        context.go('/login');
+        if (mounted) context.go('/login');
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(userProvider.error ?? 'Registration failed'),
             backgroundColor: Colors.red,

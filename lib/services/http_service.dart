@@ -1,5 +1,5 @@
-/// HTTP Client Service
-/// Handles all HTTP requests with proper error handling and interceptors
+// HTTP Client Service
+// Handles all HTTP requests with proper error handling and interceptors
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;

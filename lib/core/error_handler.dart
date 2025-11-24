@@ -1,5 +1,5 @@
-/// Error Handler
-/// Centralized error handling for API responses and exceptions
+// Error Handler
+// Centralized error handling for API responses and exceptions
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

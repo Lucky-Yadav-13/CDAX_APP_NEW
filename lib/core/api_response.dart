@@ -74,7 +74,7 @@ class ApiResponse<T> {
     if (isSuccess && data != null) {
       try {
         return ApiResponse.success(
-          transform(data!),
+          transform(data as T),
           message: message,
           statusCode: statusCode,
           metadata: metadata,
@@ -103,7 +103,7 @@ class ApiResponse<T> {
     if (isLoading && loading != null) {
       return loading();
     } else if (isSuccess && data != null) {
-      return success(data!);
+      return success(data as T);
     } else {
       return error(getErrorMessage());
     }

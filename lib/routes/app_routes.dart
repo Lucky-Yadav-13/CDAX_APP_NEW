@@ -1,5 +1,5 @@
-/// App Routes Configuration
-/// Centralized route management using named routes
+// App Routes Configuration
+// Centralized route management using named routes
 import 'package:flutter/material.dart';
 
 class AppRoutes {

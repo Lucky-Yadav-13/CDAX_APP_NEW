@@ -1,5 +1,5 @@
-/// Storage Service
-/// Handles local storage operations (In-memory for now, replace with SharedPreferences later)
+// Storage Service
+// Handles local storage operations (In-memory for now, replace with SharedPreferences later)
 
 class StorageService {
   static final StorageService _instance = StorageService._internal();

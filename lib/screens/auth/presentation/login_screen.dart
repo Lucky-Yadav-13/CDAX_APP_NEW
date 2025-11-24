@@ -37,6 +37,8 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text,
       );
       
+      if (!mounted) return;
+      
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

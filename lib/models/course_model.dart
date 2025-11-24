@@ -1,5 +1,5 @@
-/// Course Model
-/// Represents course data from the backend
+// Course Model
+// Represents course data from the backend
 import 'module_model.dart';
 
 class CourseModel {

@@ -20,7 +20,7 @@ class CardDetails {
   final String holderName;
 
   /// Returns card number without spaces for processing
-  String get sanitizedCardNumber => cardNumber.replaceAll(' ', '');
+  String get sanitizedCardNumber => cardNumber.replaceAll(RegExp(r'[^0-9]'), '');
 
   /// Returns formatted card number with spaces for display
   String get formattedCardNumber {
@@ -44,7 +44,8 @@ class CardDetails {
     
     final lastFour = sanitized.substring(sanitized.length - 4);
     final maskedPart = 'X' * (sanitized.length - 4);
-    return '${maskedPart.replaceAllMapped(RegExp(r'.{4}'), (match) => '${match.group(0)} ')}$lastFour';
+    // Return masked digits without inserting spaces so masked length matches original digit length
+    return '$maskedPart$lastFour';
   }
 
   /// Returns expiry in MM/YY format
@@ -52,6 +53,11 @@ class CardDetails {
 
   /// Validates card using Luhn algorithm
   bool get isValidLuhn {
+    // Reject if original input contains invalid characters (letters/symbols)
+    if (RegExp(r'[^0-9\s]').hasMatch(cardNumber)) {
+      return false;
+    }
+
     final sanitized = sanitizedCardNumber;
     if (sanitized.isEmpty || sanitized.length < 13 || sanitized.length > 19) {
       return false;

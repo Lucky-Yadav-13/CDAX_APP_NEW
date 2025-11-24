@@ -1,5 +1,5 @@
-/// Course Service
-/// Handles all course-related API operations
+// Course Service
+// Handles all course-related API operations
 import '../constants/api_endpoints.dart';
 import 'http_service.dart';
 

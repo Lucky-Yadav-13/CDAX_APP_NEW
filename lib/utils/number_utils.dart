@@ -1,5 +1,5 @@
-/// Number Utilities
-/// Helper functions for number formatting and calculations
+// Number Utilities
+// Helper functions for number formatting and calculations
 import 'dart:math' as math;
 
 class NumberUtils {

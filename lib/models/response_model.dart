@@ -1,5 +1,5 @@
-/// Response Model
-/// Generic response wrapper for API calls
+// Response Model
+// Generic response wrapper for API calls
 import 'user_model.dart';
 
 class ResponseModel<T> {

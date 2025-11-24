@@ -39,7 +39,7 @@ class HomeScreen extends StatelessWidget {
                     if (value == 'logout') {
                       await userProvider.logout();
                       // Navigate to login screen
-                      context.go('/login');
+                      if (context.mounted) context.go('/login');
                     }
                   },
                   itemBuilder: (BuildContext context) => [

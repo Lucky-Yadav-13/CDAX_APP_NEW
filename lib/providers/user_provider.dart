@@ -1,5 +1,5 @@
-/// User Provider
-/// Manages user state and user-related operations
+// User Provider
+// Manages user state and user-related operations
 import 'package:flutter/foundation.dart';
 import '../models/auth/auth_response_model.dart';
 import '../services/auth_service.dart';

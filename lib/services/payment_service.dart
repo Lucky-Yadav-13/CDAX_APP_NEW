@@ -2,6 +2,7 @@
 // Handles purchase creation and payment verification with backend APIs
 
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 
@@ -19,13 +20,20 @@ class PaymentService {
     required String courseTitle,
     required double amount,
     String currency = 'INR',
+    String? userId,
   }) async {
-    final url = Uri.parse('${BackendConfig.baseUrl}/api/courses/$courseId/purchase');
+    final url = Uri.parse('${BackendConfig.baseUrl}/api/course/purchase').replace(
+      queryParameters: {
+        'userId': userId ?? '1',
+        'courseId': courseId,
+      },
+    );
     
-    print('📡 Creating purchase order on backend...');
-    print('   ├─ Course ID: $courseId');
-    print('   ├─ Amount: $amount $currency');
-    print('   └─ URL: $url');
+    log('📡 Creating purchase order on backend...');
+    log('   ├─ Course ID: $courseId');
+    log('   ├─ User ID: ${userId ?? '1'}');
+    log('   ├─ Amount: $amount $currency');
+    log('   └─ URL: $url');
 
     try {
       final response = await http.post(
@@ -36,27 +44,32 @@ class PaymentService {
           // TODO: Add authentication headers when user auth is implemented
           // 'Authorization': 'Bearer ${await AuthService.getToken()}',
         },
-        body: json.encode({
-          'courseId': courseId,
-          'courseTitle': courseTitle,
-          'amount': amount,
-          'currency': currency,
-        }),
       ).timeout(timeout);
 
-      print('   📨 Response status: ${response.statusCode}');
+      log('   📨 Response status: ${response.statusCode}');
+      log('   📨 Response body: ${response.body}');
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200) {
         final Map<String, dynamic> result = json.decode(response.body);
-        print('   ✅ Purchase order created successfully');
-        print('   📋 Order ID: ${result['orderId']}');
-        return result;
+        log('   ✅ Purchase order created successfully');
+        log('   📋 Order ID: ${result['orderId']}');
+        
+        // Return standardized format for payment gateway
+        return {
+          'success': result['success'] ?? true,
+          'orderId': result['orderId'],
+          'amount': (amount * 100).toInt(), // Convert to paisa for Razorpay
+          'currency': currency,
+          'courseId': courseId,
+          'userId': userId ?? '1',
+          'message': result['message'],
+        };
       } else {
-        print('   ❌ Failed to create purchase order: ${response.statusCode}');
+        log('   ❌ Failed to create purchase order: ${response.statusCode}');
         throw HttpException('Failed to create purchase order: ${response.statusCode}');
       }
     } catch (e) {
-      print('   💥 Error creating purchase order: $e');
+      log('   💥 Error creating purchase order: $e');
       rethrow;
     }
   }
@@ -71,10 +84,10 @@ class PaymentService {
   }) async {
     final url = Uri.parse('${BackendConfig.baseUrl}/api/payments/verify');
     
-    print('📡 Verifying payment with backend...');
-    print('   ├─ Order ID: $orderId');
-    print('   ├─ Payment ID: $paymentId');
-    print('   └─ URL: $url');
+    log('📡 Verifying payment with backend...');
+    log('   ├─ Order ID: $orderId');
+    log('   ├─ Payment ID: $paymentId');
+    log('   └─ URL: $url');
 
     try {
       final response = await http.post(
@@ -93,11 +106,12 @@ class PaymentService {
         }),
       ).timeout(timeout);
 
-      print('   📨 Response status: ${response.statusCode}');
+      log('   📨 Response status: ${response.statusCode}');
+      log('   📨 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> result = json.decode(response.body);
-        print('   ✅ Payment verification successful');
+        log('   ✅ Payment verification successful');
         
         return PaymentResult(
           success: result['success'] ?? true,
@@ -107,7 +121,7 @@ class PaymentService {
           signature: signature,
         );
       } else {
-        print('   ❌ Payment verification failed: ${response.statusCode}');
+        log('   ❌ Payment verification failed: ${response.statusCode}');
         final errorBody = response.body.isNotEmpty ? json.decode(response.body) : {};
         return PaymentResult(
           success: false,
@@ -117,7 +131,7 @@ class PaymentService {
         );
       }
     } catch (e) {
-      print('   💥 Error verifying payment: $e');
+      log('   💥 Error verifying payment: $e');
       return PaymentResult(
         success: false,
         message: 'Payment verification error: ${e.toString()}',
@@ -130,13 +144,20 @@ class PaymentService {
   /// Get purchase status from backend
   /// Used for polling or checking purchase state
   static Future<Map<String, dynamic>?> getPurchaseStatus({
-    required String orderId,
+    required String courseId,
+    String? userId,
   }) async {
-    final url = Uri.parse('${BackendConfig.baseUrl}/api/purchases/$orderId/status');
+    final url = Uri.parse('${BackendConfig.baseUrl}/api/course/purchased').replace(
+      queryParameters: {
+        'userId': userId ?? '1',
+        'courseId': courseId,
+      },
+    );
     
-    print('📡 Checking purchase status...');
-    print('   ├─ Order ID: $orderId');
-    print('   └─ URL: $url');
+    log('📡 Checking purchase status...');
+    log('   ├─ Course ID: $courseId');
+    log('   ├─ User ID: ${userId ?? '1'}');
+    log('   └─ URL: $url');
 
     try {
       final response = await http.get(
@@ -149,18 +170,19 @@ class PaymentService {
         },
       ).timeout(timeout);
 
-      print('   📨 Response status: ${response.statusCode}');
+      log('   📨 Response status: ${response.statusCode}');
+      log('   📨 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> result = json.decode(response.body);
-        print('   ✅ Purchase status retrieved');
+        log('   ✅ Purchase status retrieved');
         return result;
       } else {
-        print('   ❌ Failed to get purchase status: ${response.statusCode}');
+        log('   ❌ Failed to get purchase status: ${response.statusCode}');
         return null;
       }
     } catch (e) {
-      print('   💥 Error getting purchase status: $e');
+      log('   💥 Error getting purchase status: $e');
       return null;
     }
   }

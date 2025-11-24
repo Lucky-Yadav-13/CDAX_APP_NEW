@@ -1,5 +1,5 @@
-/// Route Middleware
-/// Handles route guards, authentication checks, and navigation middleware
+// Route Middleware
+// Handles route guards, authentication checks, and navigation middleware
 import 'package:flutter/material.dart';
 
 class RouteMiddleware {
