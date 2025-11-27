@@ -1,4 +1,4 @@
-// ASSUMPTION: Local enroll toggle only; backend integration later.
+// Course detail screen with subscription-based access control
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -47,7 +47,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             body: Center(child: Text('Course not found')),
           );
         }
-        final bool enrolled = course.isEnrolled;
         return Scaffold(
           appBar: AppBar(title: Text(course.title)),
           body: ListView(
@@ -98,8 +97,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                        children: [
                     Row(
                       children: [
-                             // Only show Enroll button if course is purchased but not enrolled
-                             if (course.isSubscribed && !enrolled)
+                             // Show Enroll button if course is purchased
+                             if (course.isSubscribed)
                                Expanded(
                                  child: FilledButton(
                                    onPressed: () async {
@@ -138,48 +137,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                                      }
                                    },
                                    child: const Text('Enroll'),
-                                 ),
-                               ),
-                             // Only show Unenroll button if enrolled
-                             if (enrolled)
-                               Expanded(
-                                 child: FilledButton.tonal(
-                                   onPressed: () async {
-                                     try {
-                                       final success = await _repo.unenrollFromCourse(course.id);
-                                       if (mounted) {
-                                         if (success) {
-                                           // ignore: use_build_context_synchronously
-                                           ScaffoldMessenger.of(context).showSnackBar(
-                                             const SnackBar(
-                                               content: Text('Successfully unenrolled from course'),
-                                               backgroundColor: Colors.orange,
-                                             ),
-                                           );
-                                           setState(() {}); // Refresh to show updated state
-                                         } else {
-                                           // ignore: use_build_context_synchronously
-                                           ScaffoldMessenger.of(context).showSnackBar(
-                                             const SnackBar(
-                                               content: Text('Failed to unenroll. Please try again.'),
-                                               backgroundColor: Colors.red,
-                                             ),
-                                           );
-                                         }
-                                       }
-                                     } catch (e) {
-                                       if (mounted) {
-                                         // ignore: use_build_context_synchronously
-                                         ScaffoldMessenger.of(context).showSnackBar(
-                                           const SnackBar(
-                                             content: Text('Failed to unenroll. Please try again.'),
-                                             backgroundColor: Colors.red,
-                                           ),
-                                         );
-                                       }
-                                     }
-                                   },
-                                   child: const Text('Unenroll'),
                                  ),
                                ),
                              const SizedBox(width: 8),

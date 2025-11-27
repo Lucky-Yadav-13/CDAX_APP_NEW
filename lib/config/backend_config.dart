@@ -8,8 +8,9 @@ class BackendConfig {
   // Example: static const String baseUrl = 'http://localhost:8080';
   // Example: static const String baseUrl = 'https://your-domain.com';
   // static const String baseUrl = 'https://cdax-backend-hosting-2.onrender.com'; // Change this to your backend URL
-  static const String baseUrl = 'https://cdax-assessment-hosting.onrender.com'; // Change this to your backend URL
-  
+  // static const String baseUrl = 'https://cdax-assessment-hosting.onrender.com'; // Change this to your backend URL
+  static const String baseUrl = 'https://cdax-assessment-hosting-f284.onrender.com'; // Update with your Spring Boot API URL
+
   // API timeout configuration
   static const Duration requestTimeout = Duration(seconds: 15);
   

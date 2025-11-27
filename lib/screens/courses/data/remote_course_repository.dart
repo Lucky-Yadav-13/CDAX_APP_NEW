@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../services/auth_service.dart';
 import 'course_repository.dart';
 import 'models/course.dart';
 import 'models/module.dart';
@@ -15,7 +16,7 @@ import '../../../models/assessment/assessment_model.dart';
 class RemoteCourseRepository implements CourseRepository {
   final String baseUrl;
   final Duration timeout;
-  
+
   RemoteCourseRepository({
     required this.baseUrl,
     this.timeout = const Duration(seconds: 10),
@@ -29,19 +30,24 @@ class RemoteCourseRepository implements CourseRepository {
     print('   ├─ Search: ${search ?? 'none'}');
     print('   ├─ Page: $page');
     print('   └─ URL: $baseUrl/api/courses');
-    
+
     try {
       // Build query parameters
+      final auth = AuthService();
+      final user = await auth.getCurrentUser();
+
       final Map<String, String> queryParams = {
         'page': page.toString(),
+        'userId': user?.id.toString() ?? '0',
       };
+
       if (search != null && search.trim().isNotEmpty) {
         queryParams['search'] = search.trim();
       }
-      
+
       final uri = Uri.parse('$baseUrl/api/courses').replace(queryParameters: queryParams);
       print('   🌐 Full request URL: $uri');
-      
+
       // Make HTTP request
       final response = await http.get(
         uri,
@@ -50,15 +56,15 @@ class RemoteCourseRepository implements CourseRepository {
           'Accept': 'application/json',
         },
       ).timeout(timeout);
-      
+
       print('   📨 Response status: ${response.statusCode}');
       print('   📨 Response headers: ${response.headers}');
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         print('   ✅ Successfully received courses data');
         print('   📊 Response structure: ${jsonResponse.keys.toList()}');
-        
+
         // Handle different response structures
         List<dynamic> coursesData = [];
         if (jsonResponse.containsKey('data')) {
@@ -74,9 +80,9 @@ class RemoteCourseRepository implements CourseRepository {
             }
           }
         }
-        
+
         print('   📚 Found ${coursesData.length} courses in response');
-        
+
         // Parse courses
         final List<Course> courses = coursesData.map((courseJson) {
           try {
@@ -87,7 +93,7 @@ class RemoteCourseRepository implements CourseRepository {
             rethrow;
           }
         }).toList();
-        
+
         print('   🎓 Successfully parsed ${courses.length} courses');
         for (final course in courses) {
           int totalVideos = course.modules.fold(0, (sum, module) => sum + module.videos.length);
@@ -114,11 +120,18 @@ class RemoteCourseRepository implements CourseRepository {
     print('\n📡 Fetching course details from backend...');
     print('   ├─ Course ID: $id');
     print('   └─ URL: $baseUrl/api/courses/$id');
-    
+
     try {
-      final uri = Uri.parse('$baseUrl/api/courses/$id');
-      print('   🌐 Full request URL: $uri');
-      
+      final auth = AuthService();
+      final currentUser = await auth.getCurrentUser();
+
+      final uri = Uri.parse('$baseUrl/api/courses/$id').replace(
+        queryParameters: {
+          'userId': currentUser?.id.toString() ?? '0',
+        },
+      );
+
+
       final response = await http.get(
         uri,
         headers: {
@@ -126,13 +139,13 @@ class RemoteCourseRepository implements CourseRepository {
           'Accept': 'application/json',
         },
       ).timeout(timeout);
-      
+
       print('   📨 Response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         print('   ✅ Successfully received course details');
-        
+
         // Handle different response structures
         Map<String, dynamic> courseData;
         if (jsonResponse.containsKey('data')) {
@@ -142,7 +155,7 @@ class RemoteCourseRepository implements CourseRepository {
         } else {
           courseData = jsonResponse;
         }
-        
+
         final Course course = Course.fromJson(courseData);
         int totalVideos = course.modules.fold(0, (sum, module) => sum + module.videos.length);
         print('   🎓 Course: ${course.title} (${course.modules.length} modules, $totalVideos videos)');
@@ -166,11 +179,11 @@ class RemoteCourseRepository implements CourseRepository {
     print('\n📡 Enrolling in course via backend...');
     print('   ├─ Course ID: $courseId');
     print('   └─ URL: $baseUrl/api/courses/$courseId/enroll');
-    
+
     try {
       final uri = Uri.parse('$baseUrl/api/courses/$courseId/enroll');
       print('   🌐 Full request URL: $uri');
-      
+
       final response = await http.post(
         uri,
         headers: {
@@ -184,17 +197,17 @@ class RemoteCourseRepository implements CourseRepository {
           'timestamp': DateTime.now().toIso8601String(),
         }),
       ).timeout(timeout);
-      
+
       print('   📨 Response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         print('   ✅ Successfully enrolled in course');
         print('   📄 Response: $jsonResponse');
-        
-        return jsonResponse['success'] == true || 
-               jsonResponse['enrolled'] == true || 
-               response.statusCode == 201;
+
+        return jsonResponse['success'] == true ||
+            jsonResponse['enrolled'] == true ||
+            response.statusCode == 201;
       } else {
         print('   ❌ Backend enrollment failed: ${response.statusCode}');
         print('   📄 Error response: ${response.body}');
@@ -211,11 +224,11 @@ class RemoteCourseRepository implements CourseRepository {
     print('\n📡 Unenrolling from course via backend...');
     print('   ├─ Course ID: $courseId');
     print('   └─ URL: $baseUrl/api/courses/$courseId/unenroll');
-    
+
     try {
       final uri = Uri.parse('$baseUrl/api/courses/$courseId/unenroll');
       print('   🌐 Full request URL: $uri');
-      
+
       final response = await http.delete(
         uri,
         headers: {
@@ -225,9 +238,9 @@ class RemoteCourseRepository implements CourseRepository {
           // 'Authorization': 'Bearer $token',
         },
       ).timeout(timeout);
-      
+
       print('   📨 Response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200 || response.statusCode == 204) {
         print('   ✅ Successfully unenrolled from course');
         return true;
@@ -247,11 +260,11 @@ class RemoteCourseRepository implements CourseRepository {
     print('\n📡 Purchasing course via backend...');
     print('   ├─ Course ID: $courseId');
     print('   └─ URL: $baseUrl/api/courses/$courseId/purchase');
-    
+
     try {
       final uri = Uri.parse('$baseUrl/api/courses/$courseId/purchase');
       print('   🌐 Full request URL: $uri');
-      
+
       final response = await http.post(
         uri,
         headers: {
@@ -265,22 +278,22 @@ class RemoteCourseRepository implements CourseRepository {
           'timestamp': DateTime.now().toIso8601String(),
         }),
       ).timeout(timeout);
-      
+
       print('   📨 Response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         print('   ✅ Successfully purchased course');
         print('   📄 Response: $jsonResponse');
-        
+
         // Mark local mock fallback as purchased as well so client-side access works
         try {
           // Fallback removed - using backend only
         } catch (_) {}
 
-        return jsonResponse['success'] == true || 
-               jsonResponse['purchased'] == true || 
-               response.statusCode == 201;
+        return jsonResponse['success'] == true ||
+            jsonResponse['purchased'] == true ||
+            response.statusCode == 201;
       } else {
         print('   ❌ Backend purchase failed: ${response.statusCode}');
         print('   📄 Error response: ${response.body}');
@@ -299,11 +312,11 @@ class RemoteCourseRepository implements CourseRepository {
     print('   ├─ Assessment ID type: ${assessmentId.runtimeType}');
     print('   ├─ Base URL: $baseUrl');
     print('   └─ URL: $baseUrl/api/assessments/$assessmentId/questions');
-    
+
     try {
       final uri = Uri.parse('$baseUrl/api/assessments/$assessmentId/questions');
       print('   🌐 Full request URL: $uri');
-      
+
       final response = await http.get(
         uri,
         headers: {
@@ -311,13 +324,13 @@ class RemoteCourseRepository implements CourseRepository {
           'Accept': 'application/json',
         },
       ).timeout(timeout);
-      
+
       print('   📨 Response status: ${response.statusCode}');
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonResponse = json.decode(response.body);
         print('   ✅ Successfully received questions data');
-        
+
         // Handle different response structures
         List<dynamic> questionsData = [];
         if (jsonResponse.containsKey('data') && jsonResponse['data'] is List) {
@@ -327,9 +340,9 @@ class RemoteCourseRepository implements CourseRepository {
         } else if (jsonResponse is List) {
           questionsData = jsonResponse as List;
         }
-        
+
         print('   📋 Found ${questionsData.length} questions in response');
-        
+
         // Parse questions
         final List<Question> questions = questionsData.map((questionJson) {
           try {
@@ -340,9 +353,9 @@ class RemoteCourseRepository implements CourseRepository {
             rethrow;
           }
         }).toList();
-        
+
         print('   ❓ Successfully parsed ${questions.length} questions');
-        
+
         return questions;
       } else {
         print('   ❌ Backend returned error: ${response.statusCode}');
@@ -360,11 +373,11 @@ class RemoteCourseRepository implements CourseRepository {
     print('\n📡 Fetching module assessments from backend...');
     print('   ├─ Module ID: $moduleId');
     print('   └─ URL: $baseUrl/api/modules/$moduleId/assessments');
-    
+
     try {
       final uri = Uri.parse('$baseUrl/api/modules/$moduleId/assessments');
       print('   🌐 Full request URL: $uri');
-      
+
       final response = await http.get(
         uri,
         headers: {
@@ -372,15 +385,15 @@ class RemoteCourseRepository implements CourseRepository {
           'Accept': 'application/json',
         },
       ).timeout(timeout);
-      
+
       print('   📨 Response status: ${response.statusCode}');
       print('   📄 Response body length: ${response.body.length}');
       print('   📄 Response body preview: ${response.body.length > 200 ? response.body.substring(0, 200) + "..." : response.body}');
-      
+
       if (response.statusCode == 200) {
         final dynamic jsonDecoded = json.decode(response.body);
         print('   📊 Response type: ${jsonDecoded.runtimeType}');
-        
+
         List<dynamic> jsonResponse = [];
         if (jsonDecoded is List) {
           jsonResponse = jsonDecoded;
@@ -394,10 +407,10 @@ class RemoteCourseRepository implements CourseRepository {
             jsonResponse = [];
           }
         }
-        
+
         print('   ✅ Successfully received questions data');
         print('   📋 Found ${jsonResponse.length} questions in response');
-        
+
         // Parse assessments
         final List<Assessment> assessments = jsonResponse.map((assessmentJson) {
           try {
@@ -408,9 +421,9 @@ class RemoteCourseRepository implements CourseRepository {
             rethrow;
           }
         }).toList();
-        
+
         print('   📝 Successfully parsed ${assessments.length} assessments');
-        
+
         return assessments;
       } else {
         print('   ❌ Backend returned error: ${response.statusCode}');
@@ -469,17 +482,17 @@ class RemoteCourseRepository implements CourseRepository {
         // If module is locked, ensure its assessment is locked as well
         assessment: m.assessment != null
             ? Assessment(
-                id: m.assessment!.id,
-                title: m.assessment!.title,
-                category: m.assessment!.category,
-                duration: m.assessment!.duration,
-                difficulty: m.assessment!.difficulty,
-                description: m.assessment!.description,
-                totalQuestions: m.assessment!.totalQuestions,
-                passingScore: m.assessment!.passingScore,
-                isActive: !moduleLocked,
-                isLocked: moduleLocked,
-              )
+          id: m.assessment!.id,
+          title: m.assessment!.title,
+          category: m.assessment!.category,
+          duration: m.assessment!.duration,
+          difficulty: m.assessment!.difficulty,
+          description: m.assessment!.description,
+          totalQuestions: m.assessment!.totalQuestions,
+          passingScore: m.assessment!.passingScore,
+          isActive: !moduleLocked,
+          isLocked: moduleLocked,
+        )
             : null,
       ));
     }
@@ -491,7 +504,6 @@ class RemoteCourseRepository implements CourseRepository {
       thumbnailUrl: course.thumbnailUrl,
       progressPercent: course.progressPercent,
       isSubscribed: course.isSubscribed,
-      isEnrolled: course.isEnrolled,
       modules: modules,
       instructor: course.instructor,
       rating: course.rating,
@@ -502,3 +514,4 @@ class RemoteCourseRepository implements CourseRepository {
     );
   }
 }
+ 

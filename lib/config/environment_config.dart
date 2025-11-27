@@ -23,7 +23,7 @@ class EnvironmentConfig {
   }
   
   static const Map<String, dynamic> developmentConfig = {
-    'baseUrl': 'https://cdax-assessment-hosting.onrender.com',
+    'baseUrl': 'https://cdax-assessment-hosting-f284.onrender.com',
     'apiVersion': '/api',
     'enableLogging': true,
     'enableDebugMode': true,

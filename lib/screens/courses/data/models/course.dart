@@ -12,7 +12,6 @@ class Course {
   final String thumbnailUrl;
   final double progressPercent; // 0..1
   final bool isSubscribed; // Whether course is purchased
-  final bool isEnrolled; // Whether user is enrolled in the course
   final List<Module> modules;
   final String? instructor; // Optional instructor name
   final double? rating; // Optional course rating
@@ -28,7 +27,6 @@ class Course {
     required this.thumbnailUrl,
     required this.progressPercent,
     required this.isSubscribed,
-    this.isEnrolled = false,
     required this.modules,
     this.instructor,
     this.rating,
@@ -63,7 +61,6 @@ class Course {
         thumbnailUrl: json['thumbnailUrl']?.toString() ?? '',
         progressPercent: _parseDoubleSafely(json['progressPercent'] ?? json['progress'], 0.0),
         isSubscribed: _parseBoolSafely(json['isSubscribed'] ?? json['isPurchased'], false),
-        isEnrolled: _parseBoolSafely(json['isEnrolled'], false),
         modules: modulesList,
         instructor: json['instructor']?.toString(),
         rating: _parseDoubleSafely(json['rating'], null),
@@ -86,7 +83,6 @@ class Course {
       'thumbnailUrl': thumbnailUrl,
       'progressPercent': progressPercent,
       'isSubscribed': isSubscribed,
-      'isEnrolled': isEnrolled,
       'modules': modules.map((module) => module.toJson()).toList(),
       'instructor': instructor,
       'rating': rating,
@@ -105,7 +101,6 @@ class Course {
     required String thumbnailUrl,
     required double progressPercent,
     required bool isSubscribed,
-    bool isEnrolled = false,
     required List<Module> modules,
   }) {
     print('🔄 Creating legacy Course: $title with ${modules.length} modules');
@@ -116,7 +111,6 @@ class Course {
       thumbnailUrl: thumbnailUrl,
       progressPercent: progressPercent,
       isSubscribed: isSubscribed,
-      isEnrolled: isEnrolled,
       modules: modules,
     );
   }
